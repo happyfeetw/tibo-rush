@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "modes": {
+    "regular": {
+      "main": { "provider": "openai-codex", "id": "gpt-6.1-sol", "thinking": "high" },
+      "roles": {
+        "task": "openai-codex/gpt-6.1-sol:high",
+        "analyst": "openai-codex/gpt-6.1-sol:high",
+        "plan": "openai-codex/gpt-6.1-sol:high",
+        "review": "openai-codex/gpt-6-astra:high",
+        "slow": "openai-codex/gpt-6-astra:xhigh",
+        "frontend": "google-antigravity/gemini-3.8-flash:high",
+        "smol": "openai-codex/gpt-6-luna:high"
+      },
+      "agentModels": {
+        "task": "@task",
+        "analyst": "@analyst",
+        "reviewer": "@review",
+        "deep": "@slow",
+        "deep-reviewer": "@slow",
+        "security-reviewer": "@slow",
+        "frontend": "@frontend",
+        "scout": "@smol",
+        "sonic": "@smol"
+      },
+      "tier": "default",
+      "agentTiers": {
+        "task": "default",
+        "analyst": "default",
+        "reviewer": "default",
+        "deep": "default",
+        "deep-reviewer": "default",
+        "security-reviewer": "default",
+        "frontend": "none",
+        "scout": "default",
+        "sonic": "default"
+      },
+      "instruction": "Tibo Impact temporarily overrides only the listed model roles, agent models and service tiers. Keep risk-based review gates and avoid needless parallelism or rework. Search-tool routing and normal configured fallback chains are unchanged; this mode does not guarantee API fallback is disabled. OFF restores the captured session main model, thinking, service tiers and runtime overrides."
+    },
+    "fast": {
+      "main": { "provider": "openai-codex", "id": "gpt-6-astra", "thinking": "medium" },
+      "roles": {
+        "task": "openai-codex/gpt-6.1-sol:high",
+        "analyst": "openai-codex/gpt-6-astra:medium",
+        "plan": "openai-codex/gpt-6-astra:medium",
+        "review": "openai-codex/gpt-6-astra:high",
+        "slow": "openai-codex/gpt-6-astra:xhigh",
+        "frontend": "google-antigravity/gemini-3.8-flash:high",
+        "smol": "openai-codex/gpt-6-luna:high"
+      },
+      "agentModels": {
+        "task": "@task",
+        "analyst": "@analyst",
+        "reviewer": "@review",
+        "deep": "@slow",
+        "deep-reviewer": "@slow",
+        "security-reviewer": "@slow",
+        "frontend": "@frontend",
+        "scout": "@smol",
+        "sonic": "@smol"
+      },
+      "tier": "default",
+      "agentTiers": {
+        "task": "default",
+        "analyst": "default",
+        "reviewer": "default",
+        "deep": "default",
+        "deep-reviewer": "default",
+        "security-reviewer": "default",
+        "frontend": "none",
+        "scout": "default",
+        "sonic": "default"
+      },
+      "instruction": "Tibo Impact temporarily overrides only the listed model roles, agent models and service tiers. Keep risk-based review gates and avoid needless parallelism or rework. Search-tool routing and normal configured fallback chains are unchanged; this mode does not guarantee API fallback is disabled. OFF restores the captured session main model, thinking, service tiers and runtime overrides."
+    },
+    "extreme": {
+      "main": { "provider": "openai-codex", "id": "gpt-6-astra", "thinking": "medium" },
+      "roles": {
+        "task": "openai-codex/gpt-6.1-sol:high",
+        "analyst": "openai-codex/gpt-6-astra:medium",
+        "plan": "openai-codex/gpt-6-astra:medium",
+        "review": "openai-codex/gpt-6-astra:high",
+        "slow": "openai-codex/gpt-6-astra:xhigh",
+        "frontend": "google-antigravity/gemini-3.8-flash:high",
+        "smol": "openai-codex/gpt-6-luna:high"
+      },
+      "agentModels": {
+        "task": "@task",
+        "analyst": "@analyst",
+        "reviewer": "@review",
+        "deep": "@slow",
+        "deep-reviewer": "@slow",
+        "security-reviewer": "@slow",
+        "frontend": "@frontend",
+        "scout": "@smol",
+        "sonic": "@smol"
+      },
+      "tier": "priority",
+      "agentTiers": {
+        "task": "priority",
+        "analyst": "priority",
+        "reviewer": "priority",
+        "deep": "priority",
+        "deep-reviewer": "priority",
+        "security-reviewer": "priority",
+        "frontend": "none",
+        "scout": "priority",
+        "sonic": "priority"
+      },
+      "instruction": "Tibo Impact temporarily overrides only the listed model roles, agent models and service tiers. Keep risk-based review gates and avoid needless parallelism or rework. Priority is Codex Fast, not ultrafast. Search-tool routing and normal configured fallback chains are unchanged; this mode does not guarantee API fallback is disabled. OFF restores the captured session main model, thinking, service tiers and runtime overrides."
+    }
+  }
+}

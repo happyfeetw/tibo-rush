@@ -1,0 +1,15 @@
+{
+  "name": "tibo-impact",
+  "owner": { "name": "happyfeetw" },
+  "metadata": { "description": "Tibo Impact: cross-session model presets with peer host adapters", "version": "0.1.0" },
+  "plugins": [
+    {
+      "name": "tibo-impact-omp",
+      "description": "Switch routing and speed presets across connected OMP sessions, then restore their baselines",
+      "source": "./",
+      "version": "0.1.0",
+      "license": "MIT",
+      "homepage": "https://github.com/happyfeetw/tibo-impact"
+    }
+  ]
+}

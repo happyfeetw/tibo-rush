@@ -1,0 +1,14 @@
+node_modules/
+dist/
+coverage/
+*.tgz
+.DS_Store
+.env
+.env.*
+!.env.example
+state.json
+policies.json
+clients/
+baselines/
+handoffs/
+*.tmp

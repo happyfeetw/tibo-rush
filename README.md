@@ -6,8 +6,6 @@ English | [中文](README.zh-CN.md)
 
 Tibo Rush lets you flip every connected agent session into a faster or heavier model setup with one command, then flip them all back. Each session remembers how it was configured before, so `off` puts it back the way it was rather than forcing everything to a single default.
 
-![Tibo Rush CLI demo](assets/tibo-rush-demo.gif)
-
 ```text
 /tibo-rush regular
 /tibo-rush fast

@@ -1,67 +1,10 @@
 # Tibo Rush
 
-One-switch subscription quota sprint modes for OMP and Pi.
+English | [中文](README.zh-CN.md)
 
-**Tibo Rush 是主体，宿主是平级适配项目。** 在任意已接入会话发出同一条命令，切换共享状态目录下的会话；关闭后恢复每个会话入档前的状态。
+**One-switch model and tier sprint modes for Oh My Pi and Pi.**
 
-| 适配项目 / 分发包 | 宿主 | 会话内命令 |
-| --- | --- | --- |
-| `tibo-rush-omp` | Oh My Pi（OMP） | `/tibo-rush fast` |
-| `tibo-rush-pi` | 原版 Pi | `/tibo-rush fast` |
-
-社区项目，与 OpenAI、Tibo、OMP 或 Pi 官方无隶属关系。不预测或兑换额度重置，不保证提速、额度收益或模型可用性。扩展在宿主进程中运行，**不是沙箱插件**，安装前请审阅源码。
-
-## 安装
-
-当前适配的宿主 API：OMP 18.12.5 / 18.12.6、Pi 1.4.0。宿主验收环境为 macOS；不据此宣称 Windows、Linux 完整宿主行为已验证。独立 CLI 和开发工具需要 Bun >= 1.3；Pi 自身需要其支持的 Node 版本（1.4.0 要求 >=22.19）。
-
-### OMP：`tibo-rush-omp`
-
-在 OMP 会话中：
-
-```text
-/marketplace add happyfeetw/tibo-rush
-/marketplace install tibo-rush-omp@tibo-rush
-/restart
-```
-
-或终端执行前两步：
-
-```sh
-omp plugin marketplace add happyfeetw/tibo-rush
-omp plugin install tibo-rush-omp@tibo-rush
-```
-
-每个现有 OMP 会话首次需各 `/restart`。以后切档无需重启。市场安装不保证将独立 CLI 加入 PATH。
-
-### Pi：`tibo-rush-pi`
-
-Git 安装使用主仓库的 Pi 清单，只加载 Pi 适配器，不加载 OMP：
-
-```sh
-pi install git:github.com/happyfeetw/tibo-rush@v0.2.0
-```
-
-在每个现有 Pi 会话执行 `/reload`，或退出并续接原会话，加载新扩展。之后命令与 OMP 完全相同。
-
-需要宿主专属分发包时，从 [Releases](https://github.com/happyfeetw/tibo-rush/releases) 下载 `tibo-rush-pi-0.2.0.tgz` 或 `tibo-rush-omp-0.2.0.tgz`，解压到固定目录，再使用 `pi install /absolute/path/to/package` 或 `omp plugin link /absolute/path/to/package`。每个分发包仅携带自身适配器和共享核心。**同一宿主只选择一种安装方式，避免重复加载。**
-
-Pi gallery 的发现依赖 npm 发布的 `pi-package` 包；GitHub Release 和 Git 安装不等于已经上架该目录。
-
-### 独立终端 CLI（可选）
-
-```sh
-git clone https://github.com/happyfeetw/tibo-rush.git
-cd tibo-rush
-git checkout v0.2.0
-bun bin/tibo-rush.mjs status
-```
-
-需要短命令时，在该目录执行 `bun link`，确保 Bun 全局 bin 目录在 PATH 中。唯一 CLI 命令名是 `tibo-rush`。`bun link` 本身不向 OMP 或 Pi 注册扩展。
-
-## 一致的使用方式
-
-两个宿主都使用：
+With one command, Tibo Rush switches every connected agent session to a different model setup, and one more command switches them all back. Each session remembers its previous configuration, so `off` restores it instead of resetting everything to a single default.
 
 ```text
 /tibo-rush regular
@@ -71,68 +14,165 @@ bun bin/tibo-rush.mjs status
 /tibo-rush status
 ```
 
-终端使用 `tibo-rush <mode>`、`tibo-rush status` 或 `tibo-rush status --json`。
+**Oh My Pi**
 
-| 预设 | 主模型 | OMP 普通编码 | 请求速度档 |
+![Tibo Rush in Oh My Pi](assets/tibo-rush-omp-demo.gif)
+
+**Pi**
+
+![Tibo Rush in Pi](assets/tibo-rush-pi-demo.gif)
+
+*Recorded in an isolated environment with no credentials and no model requests. Without credentials the `fast` switch fails and says so instead of reporting `applied`. `off` still restores the session.*
+
+> **Community project.** Not affiliated with OpenAI, Tibo, Oh My Pi or Pi.
+> It runs inside the host process and is **not a sandbox**. Read the source before you install it.
+> It does not promise faster responses, more quota, or model availability.
+
+## Contents
+
+- [Installation](#installation)
+- [Using it](#using-it)
+- [Configuration](#configuration)
+- [How state and recovery work](#how-state-and-recovery-work)
+- [Uninstalling](#uninstalling)
+- [Upgrading from v0.1.0](#upgrading-from-v010-or-a-manual-install)
+- [Development](#development)
+
+## Installation
+
+Currently adapted to the Oh My Pi 18.12.5 / 18.12.6 and Pi 1.4.0 host APIs. Host acceptance has only been run on macOS, so Windows and Linux host behavior is not verified. The standalone CLI and dev tools need Bun 1.3 or newer. Pi 1.4.0 needs Node 22.19 or newer.
+
+### Oh My Pi
+
+Inside an OMP session:
+
+```text
+/marketplace add happyfeetw/tibo-rush
+/marketplace install tibo-rush-omp@tibo-rush
+/restart
+```
+
+Or from a terminal:
+
+```sh
+omp plugin marketplace add happyfeetw/tibo-rush
+omp plugin install tibo-rush-omp@tibo-rush
+```
+
+Sessions that were already open need one `/restart` to load the extension. After that, switching modes does not require a restart. Marketplace installs do not put the standalone CLI on your `PATH`.
+
+### Pi
+
+Install from git. This uses the main repository's Pi manifest and loads only the Pi adapter, not OMP:
+
+```sh
+pi install git:github.com/happyfeetw/tibo-rush@v0.2.0
+```
+
+Run `/reload` in each open Pi session, or quit and resume it. The commands are the same as in OMP.
+
+If you prefer a host-specific package, download `tibo-rush-pi-0.2.0.tgz` or `tibo-rush-omp-0.2.0.tgz` from the [Releases page](https://github.com/happyfeetw/tibo-rush/releases), unpack it into a fixed directory, and install from there:
+
+```sh
+pi install /absolute/path/to/package
+omp plugin link /absolute/path/to/package
+```
+
+Each package only contains its own adapter and the shared core. **Pick one install method per host.** Installing the same host twice loads the extension twice.
+
+The Pi gallery finds packages through npm, so a git install or a GitHub release does not by itself list Tibo Rush there.
+
+### Standalone CLI (optional)
+
+```sh
+git clone https://github.com/happyfeetw/tibo-rush.git
+cd tibo-rush
+git checkout v0.2.0
+bun bin/tibo-rush.mjs status
+```
+
+For a shorter command, run `bun link` in that directory and make sure Bun's global bin directory is on your `PATH`. The only CLI name is `tibo-rush`. `bun link` does not register anything with OMP or Pi.
+
+## Using it
+
+The same commands work in both hosts:
+
+```text
+/tibo-rush regular
+/tibo-rush fast
+/tibo-rush extreme
+/tibo-rush off
+/tibo-rush status
+```
+
+From a terminal, use `tibo-rush <mode>`, `tibo-rush status`, or `tibo-rush status --json`.
+
+The example preset (`presets/tibo-rush.json`) defines these modes:
+
+| Mode | Main model | OMP everyday coding | Request service tier |
 | --- | --- | --- | --- |
-| regular | Sol high | Sol high | Standard |
-| fast | Astra medium | Sol high | Standard |
-| extreme | Astra medium | Sol high | priority / Fast |
-| off | 恢复各会话原状态 | 恢复原路由 | 恢复原状态 |
+| `regular` | Sol, high thinking | Sol, high | Standard |
+| `fast` | Astra, medium thinking | Sol, high | Standard |
+| `extreme` | Astra, medium thinking | Sol, high | Priority / Fast |
+| `off` | Restores each session's original state | Restores its original routing | Restores its original tier |
 
-示例预设的 OMP 分工还包括 Astra high 审核、Astra xhigh 攻坚、Gemini 前端和 Luna 轻量角色。这是作者模型目录的示例，**不是所有账号都拥有的通用模型 ID**。先检查并按自己的宿主目录修改预设。扩展不安装代理定义、创建订阅、读取其他宿主的登录文件或兑换账号权益。
+The preset also routes review to Astra high, hard problems to Astra xhigh, frontend work to Gemini, and light tasks to Luna. These are the author's model IDs. **They are not available on every account.** Check the IDs against your own account's model list and edit the preset before using it. Tibo Rush does not install agent definitions, create subscriptions, read another host's login files, or redeem account benefits.
 
-### 相同命令，不伪造相同能力
+### What each host actually changes
 
-- **OMP**：应用主模型、思考、服务速度档，以及 OMP 原生的角色与子代理路由设置。
-- **Pi**：应用主模型和思考；针对原生 ChatGPT Codex endpoint，通过 `before_provider_request` 设置 `service_tier`，不改写其他 API 的请求。它没有同等的 OMP 角色路由接口，不会假装设置了编码、审核或前端子代理模型。状态包含宿主与能力标记。已用真实 Pi 的合成 provider payload 验证钩子，未向 OpenAI 发请求验证服务端接受情况或速度。
-- `priority` 的实际可用性与额度计费由供应商决定。策略校验拒绝 Ultrafast；代理 priority 只允许指向显式声明的 OpenAI / Codex 模型，非 OpenAI 或未声明目标会被拒绝。
-- 不改写宿主已有 fallback chains、审核门槛、搜索 provider 顺序或第三方子代理扩展配置。若宿主随后通过回退链切换 provider，实际代理路由与速度语义仍由宿主决定，需自行审查回退配置。
+The commands are the same, but the hosts expose different controls, and Tibo Rush does not pretend otherwise.
 
-## 配置与共享范围
+- **OMP** applies the main model, thinking level and service tier. It also sets OMP's own role and sub-agent routing.
+- **Pi** applies the main model and thinking. For the native ChatGPT Codex endpoint, it also sets `service_tier` through `before_provider_request`, and leaves other APIs' requests alone. Pi has no equivalent of OMP's role routing, so Tibo Rush does not claim to set coding, review or frontend sub-agent models on Pi. The status output records the host and its capabilities. We checked the hook on a real Pi install using a synthetic provider payload. We have not tested server acceptance or actual speed against OpenAI.
+- `priority` availability and billing are decided by the provider. Policy validation rejects `ultrafast`. A sub-agent can only use `priority` if its model is explicitly an OpenAI or Codex model.
+- Tibo Rush does not rewrite your host's existing fallback chains, review gates, search provider order, or third-party sub-agent extensions. If a host falls back to another provider, the host decides the actual routing and speed. Review your fallback config yourself.
 
-默认共享状态目录是 **`~/.tibo-rush`**。用 `TIBO_RUSH_HOME` 覆盖；CLI 与目标宿主进程必须使用同一目录。相同目录下的 OMP 和 Pi 会话会同时接收请求；需要分组隔离就给进程设置不同目录。这不是跨机器同步。
+## Configuration
 
-默认策略在 [`presets/tibo-rush.json`](presets/tibo-rush.json)。自定义方式：
+The default shared state directory is **`~/.tibo-rush`**. Override it with `TIBO_RUSH_HOME`. The CLI and the host process must use the same directory. OMP and Pi sessions that share a directory receive the same requests. Use a separate directory for each group that should be isolated. This does not sync across machines.
+
+To customize the policy:
 
 ```sh
 mkdir -p ~/.tibo-rush
 cp presets/tibo-rush.json ~/.tibo-rush/policies.json
 ```
 
-编辑完整 JSON 的 `modes.regular`、`modes.fast`、`modes.extreme`：
+Edit the full JSON, mainly `modes.regular`, `modes.fast` and `modes.extreme`:
 
-- `main`：`provider`、`id`、`thinking`。当前仅支持 `openai-codex` 主模型；不暗示支持其他供应商的等价速度控制。
-- `roles`：OMP 模型角色映射。
-- `agentModels`：OMP 代理名到模型或 `@角色` 的映射，引用角色必须在策略里声明。代理定义本身须已存在。
-- `tier`：`default` 或 `priority`。
-- `agentTiers`：OMP 代理速度档。`priority` 要求对应 `agentModels` 显式目标或其角色指向 OpenAI / Codex；不允许 `ultrafast`。
-- `instruction`：策略说明，必须与实际能力一致；Pi 不使用它冒充 OMP 路由已生效。
+- `main`: `provider`, `id`, `thinking`. Only `openai-codex` is supported as the main provider. Tibo Rush does not imply equivalent speed controls for other providers.
+- `roles`: OMP model role mapping.
+- `agentModels`: maps an OMP agent name to a model or an `@role`. Any role you reference must be declared in the policy. The agent definition itself must already exist.
+- `tier`: `default` or `priority`.
+- `agentTiers`: per-agent service tier for OMP. `priority` needs an explicit OpenAI/Codex target, either directly or through its role. `ultrafast` is not allowed.
+- `instruction`: a human-readable note. It has to match what the mode really does. On Pi it is not used to claim that OMP routing took effect.
 
-修改后重新执行一次目标模式命令，以新 revision 通知各会话。无效策略不写入新活动请求。**即使策略文件损坏，`off` 仍可恢复**。模型或认证不可用时显示错误，不自动开通其他渠道。
+After editing, run the mode command again so each session picks up the new revision. An invalid policy is never written as the new active request. **Even a corrupted policy file does not stop `off` from working.** If a model or its auth is unavailable, you get an error. Tibo Rush does not quietly switch to another channel.
 
-## 状态、忙碌会话和恢复
+## How state and recovery work
 
-- 请求不会中断当前模型调用；忙碌主会话显示 `pending`，空闲后再切换主模型与速度。OMP 后续子代理路由可先更新，已运行子代理不重启。
-- `status` 仅统计有有效心跳的已接入会话。零客户端不是全部生效；`pending` 不是已生效；出错不会报告 `applied`。
-- 使用会话内覆盖，不改写用户持久角色配置。`off` 恢复每个会话进入活动模式前的状态，而不是把所有会话统一改回 Sol。
-- 活动期退出进程保留恢复基线。即使离线期间切到 `off`，续接原会话仍会尝试恢复。
-- OMP 通过公开 SDK 注册表定位当前会话，并校验会话 ID 与 manager 身份，再读取配置级思考选择和确认恢复记录落盘。身份不匹配或 SDK 能力缺失时拒绝修改；落盘失败保留恢复基线并报告错误，不将内存恢复冒充持久化成功。
-- OMP 活动期分支/派生会话通过宿主日志里的隐藏自包含交接记录承接原基线，随后写共享状态目录；不把已经切过的模型当作原始状态。交接前使用 `handoffs/` 下的临时令牌记录及源日志意图保护歧义路径；若两份交接存储都失败，报告恢复受阻，不猜测父会话当前基线。日志记录是非上下文元数据，不发送给模型，但包含恢复配置，仍应保密。
-- OMP 活动期创建无父会话的新会话时，先在空闲边界恢复原状态，避免新会话继承没有恢复依据的活动模型；忙碌时会取消该次新建并提示稍后重试。若其他扩展随后否决新建，原会话仍保持接入并重新应用请求模式。
-- OMP 的异步切换准备若超过宿主超时，独立同步门禁会取消本次提交；原生模型 setter 若仍未结束，后续会话切换及模式修改继续等待，`off` 也保持 `pending`，直到该操作安全结束，不启动另一轮修改去竞争。
-- 当前验证范围是 OMP 标准 CLI 的本地文件会话及 `--no-session`；SDK 注入的远端会话存储未验证。持久会话可能因恢复确认而提前创建日志文件；`--no-session` 仅恢复内存状态。
-- 持久化确认采用宿主 flush 语义，覆盖已验证的软件崩溃恢复，不额外承诺断电级 fsync 保证。恢复元数据被人为删除后也不能保证自动恢复。
-- 在活动模式中通过宿主命令手动改模型、思考或速度，会报告策略漂移，不强行覆盖用户新选择。重新发目标模式可再次应用；`off` 仍恢复原基线。
-- 不支持把同一个宿主会话 ID 同时在多个进程中打开。活动期不要用其他扩展同时修改同一组设置；已有运行时映射按入档快照恢复。
-- 状态目录中的 `state.json`、`clients/`、`baselines/`、`handoffs/` 包含会话 ID、工作目录和恢复配置，**不得公开上传**。扩展本身不做遥测或发起模型请求。
-- 命名 profile、`--no-extensions` 等宿主加载选项可能影响接入；必须实际加载适配器才受控制。
+Tibo Rush is built around one rule: a mode is only reported as applied after the original state has been saved and the change has taken effect.
 
-### 卸载
+- Changing mode never interrupts a running model call. A busy main session shows `pending` and switches once it is idle. In OMP, sub-agent routing can be updated first, but sub-agents that are already running are not restarted.
+- `status` only counts sessions with a live heartbeat. Zero clients does not mean everything is applied. `pending` is not `applied`. A failure is never reported as `applied`.
+- Changes are session-level overrides. Your persistent role configuration is not rewritten. `off` restores each session to its state from before the mode was applied. It does not reset every session to Sol.
+- If a session is closed while a mode is active, its restore baseline is kept. If you run `off` while it is offline, resuming the session still attempts the restore.
+- **OMP:** the current session is found through the public SDK registry. Tibo Rush checks the session ID and manager identity before changing thinking settings, and it confirms the restore record is written to disk. If the identity does not match or an SDK capability is missing, it refuses to change anything. If the disk write fails, the baseline stays in place and the error is reported. An in-memory restore is never presented as persisted.
+- **OMP forks and branches:** a branched or forked session inherits the original baseline through a hidden, self-contained handoff record in the host log, and that record is then written to the shared state directory. It does not treat an already-switched model as the original. Ambiguous paths are protected with temporary tokens under `handoffs/`. If both handoff stores fail, Tibo Rush reports that recovery is blocked and does not guess the parent's baseline. Log records are metadata and are not sent to the model, but they contain restore configuration, so keep them private.
+- **OMP new sessions:** if a new session with no parent is created during an active mode, Tibo Rush restores the original state at an idle boundary first. That stops the new session from inheriting an active model that has no restore data. If the session is busy, creation is cancelled and you are asked to try again. If another extension vetoes the creation, the original session stays connected and the requested mode is applied again.
+- **OMP timeouts:** if an async switch takes longer than the host timeout, a synchronous gate cancels the commit. If a native model setter is still running, later switches and mode changes wait. `off` stays `pending` until that operation finishes safely. Tibo Rush does not start another change to race it.
+- **Verified scope:** local file sessions in the standard OMP CLI, and `--no-session`. Remote session storage injected through the SDK is not verified. A persistent session may create its log file early because of restore confirmation. `--no-session` only restores in memory.
+- **Durability:** persistence relies on the host's flush semantics. That covers the software crashes that were tested. It is not a power-loss fsync guarantee. Automatic recovery is not guaranteed if someone deletes the restore metadata by hand.
+- **Manual changes:** if you change the model, thinking or tier with a host command while a mode is active, Tibo Rush reports drift and does not override your new choice. Run the mode command again to re-apply it. `off` still restores the original baseline.
+- **Limits:** do not open the same host session ID in more than one process. While a mode is active, avoid changing the same settings from another extension. Existing runtime mappings are restored from the snapshot taken on entry.
+- **Privacy:** `state.json`, `clients/`, `baselines/` and `handoffs/` contain session IDs, working directories and restore configuration. **Do not upload them publicly.** Tibo Rush does no telemetry and makes no model requests itself.
+- Host load options such as named profiles or `--no-extensions` can stop the adapter from loading. Tibo Rush can only control sessions where the adapter is actually loaded.
 
-**先 `off`，确认相关会话恢复，再卸载。** 离线会话先续接完成恢复；不要提前删除恢复基线。
+## Uninstalling
 
-OMP 市场卸载：
+**Run `off` first, confirm the sessions have restored, then uninstall.** Offline sessions need to be resumed so they can restore. Do not delete restore data early.
+
+Oh My Pi:
 
 ```text
 /tibo-rush off
@@ -140,19 +180,21 @@ OMP 市场卸载：
 /restart
 ```
 
-Pi 使用 `pi remove <安装时的来源>`，再 `/reload`。终端命令是否保留取决于独立 CLI 的安装方式。
+Pi: run `pi remove <the source you installed from>`, then `/reload`. Whether the standalone CLI stays depends on how you installed it.
 
-### 从 v0.1.0 或旧手工安装升级
+## Upgrading from v0.1.0 or a manual install
 
-v0.1.0 的公开项目 / 主包是 `happyfeetw/tibo-impact` / `tibo-impact`，宿主包是 `tibo-impact-omp`、`tibo-impact-pi`；状态目录为 `~/.tibo-impact`，环境变量为 `TIBO_IMPACT_HOME`。**卸载旧版、安装或加载新版之前，必须先用旧版命令 `/tibo-impact off`（旧 CLI 为 `tibo-impact off` 或 `omp-impact off`），并确认所有相关会话恢复；离线会话也须先续接、完成恢复。** 若设置过旧环境变量，须让旧控制器和旧宿主仍指向原目录完成收尾，再停用该变量。
+v0.1.0 was published as `happyfeetw/tibo-impact` / `tibo-impact`, with the host packages `tibo-impact-omp` and `tibo-impact-pi`. Its state directory was `~/.tibo-impact` and its variable was `TIBO_IMPACT_HOME`.
 
-恢复完成后，使用 `/marketplace uninstall tibo-impact-omp@tibo-impact` 卸载旧 OMP 市场包；Pi 使用 `pi remove <旧安装来源>`；独立 CLI 按原安装方式解除链接或卸载。随后按上面的 v0.2.0 安装步骤安装 Tibo Rush，并在每个会话重启或重新加载，避免新旧适配器同时运行。新版只注册 `/tibo-rush` 和 `tibo-rush`，不保留旧命令别名。
+Before you remove or load the new version, run `/tibo-impact off` on the old version. The old CLI is `tibo-impact off` or `omp-impact off`. Confirm every related session has restored. Resume any offline sessions so they can finish. If you set the old environment variable, keep it set while the old controller and host still point at the old directory, and unset it only after cleanup.
 
-更早的手工版本可能使用 `~/.omp/agent/extensions/tibo-impact.ts`、状态目录 `~/.omp/agent/tibo-impact` 和 `~/.local/bin/omp-impact` 包装器。同样必须先通过旧入口让所有旧会话 `off` 并完成恢复，再移走旧扩展入口及包装器；用 `command -v omp-impact` 检查 PATH 不再命中旧控制器。旧会话恢复前保留可用的旧控制器，不要提前删除其恢复数据。
+Then uninstall the old OMP package with `/marketplace uninstall tibo-impact-omp@tibo-impact`. For Pi, use `pi remove <the old source>`. Remove the standalone CLI the same way you installed it. Install Tibo Rush using the steps above, and restart or reload each session so the old and new adapters never run at the same time. The new version only registers `/tibo-rush` and `tibo-rush`. There are no aliases for the old commands.
 
-新版默认使用全新的 `~/.tibo-rush` 状态目录（覆盖变量为 `TIBO_RUSH_HOME`）。**不会自动导入、移动或删除旧状态、基线或日志。不要把旧目录复制到新目录，也不要复制恢复元数据或改写日志标记字符串来冒充迁移。** 需要保留自定义策略时，只人工核对并重新配置 `policies.json` 中的模型策略，不复制 `state.json`、`clients/`、`baselines/`、`handoffs/` 或宿主日志恢复记录。
+Very early manual installs may have used `~/.omp/agent/extensions/tibo-impact.ts`, the state directory `~/.omp/agent/tibo-impact`, and a wrapper at `~/.local/bin/omp-impact`. Follow the same order: `off` every old session through the old entry point and let it restore. Then remove the extension file and the wrapper. Check that `command -v omp-impact` no longer finds the old controller. Keep a working old controller until the old sessions have restored, and do not delete their restore data early.
 
-## 仓库结构与开发
+The new version uses a fresh `~/.tibo-rush` state directory by default, with `TIBO_RUSH_HOME` as the override. **It does not import, move or delete old state, baselines or logs.** Do not copy the old directory, and do not copy restore metadata or edit log markers to fake a migration. If you want to keep a custom policy, review your model settings by hand and recreate them in `policies.json`. Do not copy `state.json`, `clients/`, `baselines/`, `handoffs/` or host log restore records.
+
+## Development
 
 ```text
 tibo-rush/
@@ -168,9 +210,9 @@ tibo-rush/
 └── package.json
 ```
 
-共享核心不导入宿主 API；适配器互不导入，能力差异留在各自目录。根清单便于 Git 安装；发布构建为每个宿主生成独立命名的包。
+The shared core does not import any host API. The two adapters do not import each other, so host-specific differences stay in their own directories. The root manifest makes git installs easy, and the release build generates a separately named package for each host.
 
-以下开发命令在 Git 源码 checkout 中运行；宿主专属发行包不包含测试与构建脚本。
+The commands below run from a git checkout. Host-specific packages do not include tests or build scripts.
 
 ```sh
 bun test
@@ -179,15 +221,15 @@ PI_CLI_JS=/absolute/path/to/pi-cli.js bun run smoke:pi
 bun run pack:hosts
 ```
 
-测试隔离状态目录。真实宿主 smoke 使用临时配置与会话，不调用网络模型；Pi 可用本地合成响应测试生命周期，不代表供应商实际速度验证。缺少宿主或模型能力不算验证通过。GitHub CI 的离线检查不能替代实际宿主验收。
+Tests use an isolated state directory. The real-host smoke tests use temporary config and sessions, and they make no network model calls. The Pi lifecycle can be tested with local synthetic responses, but that says nothing about actual provider speed. A missing host or model capability does not count as a pass. The offline checks in GitHub CI do not replace real host acceptance.
 
-`pack:hosts` 输出 `dist/tibo-rush-omp-<version>.tgz` 与 `dist/tibo-rush-pi-<version>.tgz`，只含分发白名单源码，不含运行状态。发布前还需隔离验证市场/包安装与新会话加载。
+`pack:hosts` writes `dist/tibo-rush-omp-<version>.tgz` and `dist/tibo-rush-pi-<version>.tgz`. These only contain whitelisted source and no runtime state. Before a release, you also need to verify marketplace and package installs, and check that new sessions load the extension.
 
-## 许可与资料
+## License and references
 
-[MIT](LICENSE)。源码从作者本地扩展整理，不包含宿主本体源码或个人会话记录。
+[MIT](LICENSE). The source was extracted from the author's local extensions. It does not include any host's source code or personal session records.
 
-- [OMP](https://github.com/can1357/oh-my-pi)
-- [OMP 市场文档](https://github.com/can1357/oh-my-pi/blob/main/docs/marketplace.md)
-- [Pi 包规范](https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/docs/packages.md)
-- [Pi 扩展规范](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/extensions.md)
+- [Oh My Pi](https://github.com/can1357/oh-my-pi)
+- [OMP marketplace docs](https://github.com/can1357/oh-my-pi/blob/main/docs/marketplace.md)
+- [Pi package spec](https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/docs/packages.md)
+- [Pi extension spec](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/extensions.md)

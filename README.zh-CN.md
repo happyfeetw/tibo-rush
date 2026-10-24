@@ -4,6 +4,16 @@
 
 One-switch subscription quota sprint modes for OMP and Pi.
 
+**Oh My Pi**
+
+![Tibo Rush 在 Oh My Pi 中](assets/tibo-rush-omp-demo.gif)
+
+**Pi**
+
+![Tibo Rush 在 Pi 中](assets/tibo-rush-pi-demo.gif)
+
+*录制于隔离环境，未配置凭据，未发送模型请求。没有凭据时，`fast` 切换会失败并明确报告，不会显示 `applied`；`off` 仍可恢复会话。*
+
 **Tibo Rush 是主体，宿主是平级适配项目。** 在任意已接入会话发出同一条命令，切换共享状态目录下的会话；关闭后恢复每个会话入档前的状态。
 
 | 适配项目 / 分发包 | 宿主 | 会话内命令 |

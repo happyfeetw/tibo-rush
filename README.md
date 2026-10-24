@@ -14,6 +14,16 @@ Tibo Rush lets you flip every connected agent session into a faster or heavier m
 /tibo-rush status
 ```
 
+**Oh My Pi**
+
+![Tibo Rush in Oh My Pi](assets/tibo-rush-omp-demo.gif)
+
+**Pi**
+
+![Tibo Rush in Pi](assets/tibo-rush-pi-demo.gif)
+
+*Recorded in an isolated environment with no credentials and no model requests. Without credentials the `fast` switch fails and says so instead of reporting `applied`. `off` still restores the session.*
+
 > **Community project.** Not affiliated with OpenAI, Tibo, Oh My Pi or Pi.
 > It runs inside the host process and is **not a sandbox**. Read the source before you install it.
 > It does not promise faster responses, more quota, or model availability.

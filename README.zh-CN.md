@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-One-switch subscription quota sprint modes for OMP and Pi.
+一键切换 Oh My Pi 和 Pi 的模型与服务速度档，并按会话恢复原状态。
 
 **Oh My Pi**
 

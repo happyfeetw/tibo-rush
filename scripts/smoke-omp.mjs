@@ -129,7 +129,7 @@ class RpcSession {
   }
   async snapshot(operation = "read") {
     const id = randomUUID();
-    await this.local("impact-smoke-probe", `${operation} ${id}`);
+    await this.local("rush-smoke-probe", `${operation} ${id}`);
     const file = path.join(temporary, "observations", `${id}.json`);
     const snapshot = await until(`${this.label}: probe snapshot`, async () => {
       this.healthy();
@@ -214,11 +214,11 @@ export default function probe(pi) {
   };
   const rename = fs.rename;
   fs.rename = async function(from, to) {
-    if (blockIntentWrites && path.dirname(path.dirname(String(to))) === path.join(process.env.TIBO_IMPACT_HOME, "handoffs")) {
+    if (blockIntentWrites && path.dirname(path.dirname(String(to))) === path.join(process.env.TIBO_RUSH_HOME, "handoffs")) {
       intentWriteFailures++;
       throw Object.assign(new Error("Synthetic precommit intent publication failure"), { code: "EIO" });
     }
-    if (baselineWriteSource && path.dirname(String(to)) === path.join(process.env.TIBO_IMPACT_HOME, "baselines") &&
+    if (baselineWriteSource && path.dirname(String(to)) === path.join(process.env.TIBO_RUSH_HOME, "baselines") &&
         path.basename(String(to)) !== createHash("sha256").update(baselineWriteSource).digest("hex") + ".json") {
       baselineWriteFailures++;
       throw Object.assign(new Error("Synthetic inherited baseline publication failure"), { code: "EIO" });
@@ -229,7 +229,7 @@ export default function probe(pi) {
     const owner = currentSessionId();
     if (!blockChildHandoff || !owner || owner === baselineWriteSource) return false;
     const identity = '"sessionId":' + JSON.stringify(owner);
-    const matches = line => typeof line === "string" && line.includes('"customType":"tibo-impact-session-handoff"') && line.includes(identity);
+    const matches = line => typeof line === "string" && line.includes('"customType":"tibo-rush-session-handoff"') && line.includes(identity);
     return Array.isArray(value) ? value.some(matches) : matches(value);
   }
   const unlink = fs.unlink;
@@ -242,14 +242,14 @@ export default function probe(pi) {
       intentUnlinkFailures++;
       throw Object.assign(new Error("Synthetic resolved-intent deletion failure"), { code: "EACCES" });
     }
-    if (process.env.IMPACT_SMOKE_RETAIN_BASELINE === "1" && path.dirname(String(file)) === path.join(process.env.TIBO_IMPACT_HOME, "baselines")) {
+    if (process.env.RUSH_SMOKE_RETAIN_BASELINE === "1" && path.dirname(String(file)) === path.join(process.env.TIBO_RUSH_HOME, "baselines")) {
       unlinkFailures++;
       throw Object.assign(new Error("Synthetic baseline deletion failure"), { code: "EACCES" });
     }
     return unlink.call(this, file, ...args);
   };
   const transitions = [];
-  pi.registerProvider("impact-smoke", {
+  pi.registerProvider("rush-smoke", {
     baseUrl: "http://127.0.0.1:9", apiKey: "synthetic-not-a-credential", api: "openai-completions",
     models: [{ id: "plain", name: "Non-reasoning offline fixture", reasoning: false, input: ["text"],
       cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }, contextWindow: 8192, maxTokens: 1024 }],
@@ -293,10 +293,10 @@ export default function probe(pi) {
     };
   }
   // No outbound fetch is necessary for local settings/model selection. Deny it as defense in depth.
-  globalThis.fetch = async () => { throw new Error("Network disabled by zero-network impact smoke"); };
-  pi.on("before_agent_start", () => { throw new Error("Model turns forbidden by zero-network impact smoke"); });
-  pi.on("before_provider_request", () => { providerRequests++; throw new Error("Provider requests forbidden by impact smoke"); });
-  pi.registerCommand("impact-smoke-probe", {
+  globalThis.fetch = async () => { throw new Error("Network disabled by zero-network rush smoke"); };
+  pi.on("before_agent_start", () => { throw new Error("Model turns forbidden by zero-network rush smoke"); });
+  pi.on("before_provider_request", () => { providerRequests++; throw new Error("Provider requests forbidden by rush smoke"); });
+  pi.registerCommand("rush-smoke-probe", {
     description: "Read actual local settings without invoking a model",
     handler: async (args, ctx) => {
       const [operation, id] = args.trim().split(/\\s+/);
@@ -305,11 +305,11 @@ export default function probe(pi) {
       if (!session || session.sessionManager !== ctx.sessionManager ||
           session.sessionManager.getSessionId() !== ctx.sessionManager.getSessionId()) throw new Error("Public registry identity mismatch");
       if (operation === "seed") {
-        const values = JSON.parse(process.env.IMPACT_SMOKE_SEED);
+        const values = JSON.parse(process.env.RUSH_SMOKE_SEED);
         for (const key of keys) {
           const handle = lookup(key);
           if (!handle) throw new Error("Missing OMP setting: " + key);
-          if (process.env.IMPACT_SMOKE_RUNTIME === "1") handle.override(pi.pi.settings, values[key]);
+          if (process.env.RUSH_SMOKE_RUNTIME === "1") handle.override(pi.pi.settings, values[key]);
           else handle.clearOverride(pi.pi.settings);
         }
         pi.setServiceTier("openai", "flex");
@@ -337,8 +337,8 @@ export default function probe(pi) {
         blockIntentWrites = false;
       } else if (operation === "fault-transition-cleanup") {
         const hash = createHash("sha256").update(ctx.sessionManager.getSessionId()).digest("hex");
-        blockedClient = path.join(process.env.TIBO_IMPACT_HOME, "clients", process.pid + "-" + hash.slice(0, 16) + ".json");
-        blockedIntentDirectory = path.join(process.env.TIBO_IMPACT_HOME, "handoffs", hash);
+        blockedClient = path.join(process.env.TIBO_RUSH_HOME, "clients", process.pid + "-" + hash.slice(0, 16) + ".json");
+        blockedIntentDirectory = path.join(process.env.TIBO_RUSH_HOME, "handoffs", hash);
       } else if (operation === "heal-transition-cleanup") {
         blockedClient = undefined;
         blockedIntentDirectory = undefined;
@@ -358,7 +358,7 @@ export default function probe(pi) {
       } else if (operation === "auto") {
         session.setThinkingLevel("auto");
       } else if (operation === "unset") {
-        const model = ctx.modelRegistry.find("impact-smoke", "plain");
+        const model = ctx.modelRegistry.find("rush-smoke", "plain");
         if (!model || !await pi.setModel(model)) throw new Error("Offline non-reasoning model unavailable");
         session.setThinkingLevel(undefined);
       } else if (operation === "drift-model") {
@@ -381,7 +381,7 @@ export default function probe(pi) {
       const model = ctx.models.current();
       const branchEntry = ctx.sessionManager.getBranch().find(entry => entry.type === "message" && entry.message.role === "user");
       const ownHandoff = ctx.sessionManager.getBranch().findLast(entry => entry.type === "custom" &&
-        entry.customType === "tibo-impact-session-handoff" && entry.data?.sessionId === ctx.sessionManager.getSessionId())?.data;
+        entry.customType === "tibo-rush-session-handoff" && entry.data?.sessionId === ctx.sessionManager.getSessionId())?.data;
       const result = { sessionId: ctx.sessionManager.getSessionId(), settings, tiers: pi.getServiceTiers(),
         thinking: pi.getThinkingLevel() ?? null, configured: configured ?? null,
         model: { provider: model?.provider, id: model?.id }, providerRequests,
@@ -389,7 +389,7 @@ export default function probe(pi) {
         intentWriteFailures, intentUnlinkFailures,
         modelRefreshWaiting, modelRefreshBlocks, modelRefreshReleases,
         branchEntryId: branchEntry?.id, ownHandoff, hostVersion: pi.pi.VERSION, registryIdentity: true };
-      const dir = path.join(process.env.IMPACT_SMOKE_ROOT, "observations");
+      const dir = path.join(process.env.RUSH_SMOKE_ROOT, "observations");
       await fs.mkdir(dir, { recursive: true });
       await fs.writeFile(path.join(dir, id + ".json"), JSON.stringify(result));
     }
@@ -398,10 +398,10 @@ export default function probe(pi) {
 `;
 
 function baselineFile(sessionId) {
-  return path.join(temporary, "impact", "baselines", `${createHash("sha256").update(sessionId).digest("hex")}.json`);
+  return path.join(temporary, "rush", "baselines", `${createHash("sha256").update(sessionId).digest("hex")}.json`);
 }
 async function sourceIntents(sessionId) {
-  const directory = path.join(temporary, "impact", "handoffs", createHash("sha256").update(sessionId).digest("hex"));
+  const directory = path.join(temporary, "rush", "handoffs", createHash("sha256").update(sessionId).digest("hex"));
   let files;
   try { files = await fs.readdir(directory); }
   catch (error) { if (error.code === "ENOENT") return []; throw error; }
@@ -440,7 +440,7 @@ function assertPolicy(actual, baseline, policy) {
 async function aligned(sessions, state) {
   await until(`sessions apply ${state.mode}/${state.revision}`, async () => {
     sessions.forEach(session => session.healthy());
-    const rows = await listClients(path.join(temporary, "impact"));
+    const rows = await listClients(path.join(temporary, "rush"));
     for (const row of rows) if (row.revision === state.revision) assert.notEqual(row.status, "error", `${row.sessionId}: ${row.error}`);
     return rows.length === sessions.length && rows.every(row => row.status === "applied" && row.revision === state.revision && row.appliedMode === state.mode);
   });
@@ -448,11 +448,11 @@ async function aligned(sessions, state) {
 
 async function main() {
   if (!process.versions.bun) throw new Error("Bun runtime required: bun scripts/smoke-omp.mjs");
-  temporary = await fs.mkdtemp(path.join(os.tmpdir(), "omp-impact-rpc-"));
+  temporary = await fs.mkdtemp(path.join(os.tmpdir(), "tibo-rush-rpc-"));
   const home = path.join(temporary, "home");
   const agent = path.join(home, ".omp", "agent");
   const cwd = path.join(temporary, "workspace");
-  const impact = path.join(temporary, "impact");
+  const rush = path.join(temporary, "rush");
   await Promise.all([home, agent, cwd].map(dir => fs.mkdir(dir, { recursive: true })));
   const probe = path.join(temporary, "probe.mjs");
   await fs.writeFile(probe, probeSource);
@@ -480,13 +480,13 @@ async function main() {
     XDG_CONFIG_HOME: path.join(home, ".config"), XDG_CACHE_HOME: path.join(home, ".cache"), XDG_DATA_HOME: path.join(home, ".local/share"),
     PI_CONFIG_DIR: ".omp", PI_CODING_AGENT_DIR: agent,
     PI_NATIVES_DIR: path.join(temporary, "natives"),
-    TIBO_IMPACT_HOME: impact,
-    OPENAI_CODEX_OAUTH_TOKEN: "impact-smoke-local-only-not-a-real-token",
+    TIBO_RUSH_HOME: rush,
+    OPENAI_CODEX_OAUTH_TOKEN: "rush-smoke-local-only-not-a-real-token",
     PI_NO_TITLE: "1", PI_NO_PTY: "1", OMP_SKIP_SETUP: "1", PI_AUTO_QA: "0", OTEL_SDK_DISABLED: "true",
-    IMPACT_SMOKE_ROOT: temporary, IMPACT_SMOKE_SEED: JSON.stringify(seed),
+    RUSH_SMOKE_ROOT: temporary, RUSH_SMOKE_SEED: JSON.stringify(seed),
   };
   const common = ["--mode", "rpc", "--no-ui", "--no-extensions", "--no-skills", "--no-rules", "--no-tools", "--no-lsp", "--no-title", "--no-pty", "--no-prewalk",
-    "--extension", packageRoot, "--extension", probe, "--api-key", "impact-smoke-local-only"];
+    "--extension", packageRoot, "--extension", probe, "--api-key", "rush-smoke-local-only"];
   async function start(label, runtime, model, resume, { initialize = true, noSession = false, thinking, retainBaseline = false } = {}) {
     const sessionDir = path.join(temporary, label, "sessions");
     await fs.mkdir(sessionDir, { recursive: true });
@@ -494,12 +494,12 @@ async function main() {
       ...(noSession ? ["--no-session"] : []),
       ...(resume ? ["--session", resume] : []),
       ...(!resume || thinking !== undefined ? ["--thinking", thinking ?? (runtime ? "medium" : "high")] : [])],
-      { ...env, IMPACT_SMOKE_RUNTIME: runtime ? "1" : "0", IMPACT_SMOKE_RETAIN_BASELINE: retainBaseline ? "1" : "0" }, cwd);
+      { ...env, RUSH_SMOKE_RUNTIME: runtime ? "1" : "0", RUSH_SMOKE_RETAIN_BASELINE: retainBaseline ? "1" : "0" }, cwd);
     await until(`${label}: RPC ready`, () => { session.healthy(); return session.ready; });
     // Explicit /new persists an empty session; ordinary startup stays memory-only until a model turn.
     if (!resume && initialize && !noSession) await session.request("new_session");
     const commands = (await session.request("get_available_commands")).data.commands;
-    for (const name of ["tibo-impact", "impact-smoke-probe"]) assert.ok(commands.some(command => command.name === name && command.source === "extension"), `${label}: /${name} must be registered before any prompt; extension package failed to load`);
+    for (const name of ["tibo-rush", "rush-smoke-probe"]) assert.ok(commands.some(command => command.name === name && command.source === "extension"), `${label}: /${name} must be registered before any prompt; extension package failed to load`);
     return session;
   }
   const first = await start("first", true, sol);
@@ -514,11 +514,11 @@ async function main() {
   const saved = new Map();
   for (const mode of ["regular", "fast", "extreme"]) {
     // Exercise extension command registration and its actual shared CLI/lib state contract.
-    await first.local("tibo-impact", mode);
-    const requested = await readState(impact);
+    await first.local("tibo-rush", mode);
+    const requested = await readState(rush);
     assert.equal(requested.mode, mode);
     await aligned(sessions, requested);
-    const policy = await policyFor(mode, impact);
+    const policy = await policyFor(mode, rush);
     for (let index = 0; index < sessions.length; index++) {
       assertPolicy(await sessions[index].snapshot(), baselines[index], policy);
       const file = baselineFile(baselines[index].sessionId);
@@ -536,27 +536,27 @@ async function main() {
   await first.snapshot("cancel-switch");
   const cancelled = await first.request("new_session");
   assert.equal(cancelled.data.cancelled, true, "later extension veto must cancel the transition");
-  await aligned(sessions, await readState(impact));
+  await aligned(sessions, await readState(rush));
   assert.equal((await first.snapshot()).sessionId, baselines[0].sessionId);
-  await aligned(sessions, await setMode("off", impact));
+  await aligned(sessions, await setMode("off", rush));
   assertRestored(await first.snapshot(), baselines[0]);
-  await aligned(sessions, await setMode("extreme", impact));
+  await aligned(sessions, await setMode("extreme", rush));
   await first.snapshot("branch");
-  await aligned(sessions, await readState(impact));
+  await aligned(sessions, await readState(rush));
   const branched = await first.snapshot();
   assert.notEqual(branched.sessionId, baselines[0].sessionId);
   assert.ok(branched.transitions.some(event => event.type === "session_branch" && event.sessionId === branched.sessionId));
-  assertPolicy(branched, baselines[0], await policyFor("extreme", impact));
+  assertPolicy(branched, baselines[0], await policyFor("extreme", rush));
   const transferred = JSON.parse(await fs.readFile(baselineFile(branched.sessionId), "utf8"));
   assert.deepEqual(transferred.model, baselines[0].model, "branch inherits ORIGINAL model baseline");
   assert.equal(transferred.thinking, baselines[0].configured);
   assert.deepEqual(transferred.tiers, baselines[0].tiers);
   const forkResult = await first.request("fork");
   assert.equal(forkResult.data.cancelled, false);
-  await aligned(sessions, await readState(impact));
+  await aligned(sessions, await readState(rush));
   const forked = await first.snapshot();
   assert.notEqual(forked.sessionId, branched.sessionId);
-  assertPolicy(forked, baselines[0], await policyFor("extreme", impact));
+  assertPolicy(forked, baselines[0], await policyFor("extreme", rush));
   const forkBaseline = JSON.parse(await fs.readFile(baselineFile(forked.sessionId), "utf8"));
   assert.deepEqual(forkBaseline.model, baselines[0].model);
   assert.equal(forkBaseline.thinking, baselines[0].configured);
@@ -569,40 +569,40 @@ async function main() {
   assert.equal(await fs.readFile(secondBaselineFile, "utf8"), saved.get(secondBaselineFile), "shutdown while active preserves baseline for cold resume");
   const resumed = await start("second-resumed", false, astra, sessionPath);
   sessions[1] = resumed;
-  await aligned(sessions, await readState(impact));
+  await aligned(sessions, await readState(rush));
   const resumedActive = await resumed.snapshot();
   assert.equal(resumedActive.sessionId, baselines[1].sessionId);
-  assertPolicy(resumedActive, baselines[1], await policyFor("extreme", impact));
+  assertPolicy(resumedActive, baselines[1], await policyFor("extreme", rush));
   assert.equal(await fs.readFile(secondBaselineFile, "utf8"), saved.get(secondBaselineFile));
   verify("cold resume reuses original baseline and reapplies active policy", { sessionId: resumedActive.sessionId });
   // Even a broken user override must not prevent OFF from restoring either session.
-  await fs.writeFile(path.join(impact, "policies.json"), "{malformed");
-  const off = await setMode("off", impact);
+  await fs.writeFile(path.join(rush, "policies.json"), "{malformed");
+  const off = await setMode("off", rush);
   await aligned(sessions, off);
   for (let index = 0; index < sessions.length; index++) {
     assertRestored(await sessions[index].snapshot(), baselines[index]);
     await assert.rejects(fs.access(baselineFile(baselines[index].sessionId)), { code: "ENOENT" });
   }
   verify("off restores exact main, thinking, all tiers, roles, agent routing and override provenance despite malformed policies", { sessions: 2 });
-  await fs.unlink(path.join(impact, "policies.json"));
+  await fs.unlink(path.join(rush, "policies.json"));
   await resumed.close();
   for (const operation of ["auto", "unset"]) {
     const original = await first.snapshot(operation);
     assert.equal(original.configured, operation === "auto" ? "auto" : null);
     if (operation === "unset") assert.equal(original.thinking, null);
-    await aligned([first], await setMode("fast", impact));
-    assertPolicy(await first.snapshot(), original, await policyFor("fast", impact));
-    await aligned([first], await setMode("off", impact));
+    await aligned([first], await setMode("fast", rush));
+    assertPolicy(await first.snapshot(), original, await policyFor("fast", rush));
+    await aligned([first], await setMode("off", rush));
     assertRestored(await first.snapshot(), original);
     verify("configured " + operation + " selector round-trips through real OMP", { version: original.hostVersion });
   }
   const original = await first.snapshot();
   for (const operation of ["drift-model", "drift-thinking", "drift-tier"]) {
-    await aligned([first], await setMode("extreme", impact));
+    await aligned([first], await setMode("extreme", rush));
     const changed = await first.snapshot(operation);
     await until("manual drift is reported honestly", async () => {
       first.healthy();
-      const rows = await listClients(impact);
+      const rows = await listClients(rush);
       return rows.length === 1 && rows[0].status === "error" && /changed outside/.test(rows[0].error);
     });
     const retained = await first.snapshot();
@@ -610,17 +610,17 @@ async function main() {
     assert.equal(retained.configured, changed.configured);
     assert.deepEqual(retained.tiers, changed.tiers);
   }
-  await aligned([first], await setMode("off", impact));
+  await aligned([first], await setMode("off", rush));
   assertRestored(await first.snapshot(), original);
   verify("model, configured thinking and tier drift report error without overwriting user choices");
 
-  await aligned([first], await setMode("extreme", impact));
+  await aligned([first], await setMode("extreme", rush));
   const crashPath = (await first.request("get_state")).data.sessionFile;
   await first.snapshot("fault");
-  const recoveryOff = await setMode("off", impact);
+  const recoveryOff = await setMode("off", rush);
   await until("failed journal writes retain recoverable OFF", async () => {
     first.healthy();
-    const rows = await listClients(impact);
+    const rows = await listClients(rush);
     return rows.length === 1 && rows[0].revision === recoveryOff.revision && ["pending", "error"].includes(rows[0].status);
   });
   const failed = await first.snapshot();
@@ -632,7 +632,7 @@ async function main() {
   const recovered = await start("fault-resumed", true, sol, crashPath, { retainBaseline: true });
   await until("durable restoration survives baseline unlink failure", async () => {
     recovered.healthy();
-    const rows = await listClients(impact);
+    const rows = await listClients(rush);
     return rows.length === 1 && rows[0].revision === recoveryOff.revision && rows[0].status === "error" &&
       /baseline deletion failure/.test(rows[0].error);
   });
@@ -656,11 +656,11 @@ async function main() {
   assert.equal(afterAcknowledgement.configured, userChoice.configured);
   await assert.rejects(fs.access(recoveryFile), { code: "ENOENT" });
   verify("failed baseline deletion leaves a durable acknowledgement that never replays OFF over later user edits");
-  await aligned([acknowledgedResumed], await setMode("fast", impact));
+  await aligned([acknowledgedResumed], await setMode("fast", rush));
   const recaptured = JSON.parse(await fs.readFile(recoveryFile, "utf8"));
   assert.deepEqual(recaptured.model, userChoice.model);
   assert.equal(recaptured.thinking, userChoice.configured);
-  await aligned([acknowledgedResumed], await setMode("off", impact));
+  await aligned([acknowledgedResumed], await setMode("off", rush));
   const recapturedOff = await acknowledgedResumed.snapshot();
   assert.deepEqual(recapturedOff.model, userChoice.model);
   assert.equal(recapturedOff.configured, userChoice.configured);
@@ -670,9 +670,9 @@ async function main() {
   const lazy = await start("lazy", false, sol, undefined, { initialize: false, thinking: "auto" });
   const lazyBaseline = await lazy.snapshot("seed");
   assert.equal(lazyBaseline.configured, "auto", "fresh pre-turn auto must not be inferred from an absent journal entry");
-  await aligned([lazy], await setMode("extreme", impact));
-  assertPolicy(await lazy.snapshot(), lazyBaseline, await policyFor("extreme", impact));
-  await aligned([lazy], await setMode("off", impact));
+  await aligned([lazy], await setMode("extreme", rush));
+  assertPolicy(await lazy.snapshot(), lazyBaseline, await policyFor("extreme", rush));
+  await aligned([lazy], await setMode("off", rush));
   const lazyRestored = await lazy.snapshot();
   assertRestored(lazyRestored, lazyBaseline);
   await fs.access(lazyRestored.state.sessionFile);
@@ -683,16 +683,16 @@ async function main() {
   const startupOverride = await start("auto-resumed", false, sol, lazyRestored.state.sessionFile, { thinking: "auto" });
   const startupBaseline = await startupOverride.snapshot();
   assert.equal(startupBaseline.configured, "auto", "CLI auto overrides stale persisted effort");
-  await aligned([startupOverride], await setMode("fast", impact));
-  await aligned([startupOverride], await setMode("off", impact));
+  await aligned([startupOverride], await setMode("fast", rush));
+  await aligned([startupOverride], await setMode("off", rush));
   assertRestored(await startupOverride.snapshot(), startupBaseline);
   verify("resumed CLI auto captures the actual selector rather than stale journal effort");
   await startupOverride.close();
   const ephemeral = await start("ephemeral", false, sol, undefined, { noSession: true });
   const ephemeralBaseline = await ephemeral.snapshot("seed");
   assert.ok(!ephemeralBaseline.state.sessionFile);
-  await aligned([ephemeral], await setMode("extreme", impact));
-  await aligned([ephemeral], await setMode("off", impact));
+  await aligned([ephemeral], await setMode("extreme", rush));
+  await aligned([ephemeral], await setMode("off", rush));
   assertRestored(await ephemeral.snapshot(), ephemeralBaseline);
   await assert.rejects(fs.access(baselineFile(ephemeralBaseline.sessionId)), { code: "ENOENT" });
   verify("true no-session roots restore in memory without a nonexistent cold journal");
@@ -702,7 +702,7 @@ async function main() {
   await lifecycle.snapshot("seed");
   const lifecycleSource = await lifecycle.snapshot("prepare-branch");
   assert.ok(lifecycleSource.branchEntryId);
-  const lifecycleActive = await setMode("extreme", impact);
+  const lifecycleActive = await setMode("extreme", rush);
   await aligned([lifecycle], lifecycleActive);
   await lifecycle.snapshot("fault-intent");
   assert.equal((await lifecycle.request("branch", { entryId: lifecycleSource.branchEntryId })).data.cancelled, true);
@@ -710,7 +710,7 @@ async function main() {
   assert.equal(intentRejected.sessionId, lifecycleSource.sessionId);
   assert.ok(intentRejected.intentWriteFailures > 0, "real precommit intent failure must cancel instead of being swallowed as a hook error");
   await lifecycle.snapshot("heal-intent");
-  await until("source remains attached after failed intent", async () => (await listClients(impact)).find(row =>
+  await until("source remains attached after failed intent", async () => (await listClients(rush)).find(row =>
     row.sessionId === lifecycleSource.sessionId && row.status === "applied" && row.revision === lifecycleActive.revision));
   await lifecycle.snapshot("cancel-branch");
   const vetoedBranch = await lifecycle.request("branch", { entryId: lifecycleSource.branchEntryId });
@@ -722,10 +722,10 @@ async function main() {
   assert.equal((await lifecycle.request("branch", { entryId: lifecycleSource.branchEntryId })).data.cancelled, false);
   const lifecycleChild = await lifecycle.snapshot();
   assert.notEqual(lifecycleChild.sessionId, lifecycleSource.sessionId);
-  await until("old-client deletion fault reported", async () => (await listClients(impact)).find(row =>
+  await until("old-client deletion fault reported", async () => (await listClients(rush)).find(row =>
     row.sessionId === lifecycleChild.sessionId && row.status === "error" && /Stale OMP client cleanup failed/.test(row.error ?? "")));
-  const lifecycleOff = await setMode("off", impact);
-  await until("new owner restores despite old-client cleanup failure", async () => (await listClients(impact)).find(row =>
+  const lifecycleOff = await setMode("off", rush);
+  await until("new owner restores despite old-client cleanup failure", async () => (await listClients(rush)).find(row =>
     row.sessionId === lifecycleChild.sessionId && row.revision === lifecycleOff.revision &&
     row.appliedMode === "off" && row.status === "error"));
   const lifecycleRestored = await lifecycle.snapshot();
@@ -738,7 +738,7 @@ async function main() {
   await assert.rejects(fs.access(baselineFile(lifecycleChild.sessionId)), { code: "ENOENT" });
   await fs.access(blockedClient.blockedClient);
   await lifecycle.snapshot("heal-transition-cleanup");
-  await until("transition cleanup retries succeed", async () => (await listClients(impact)).find(row =>
+  await until("transition cleanup retries succeed", async () => (await listClients(rush)).find(row =>
     row.sessionId === lifecycleChild.sessionId && row.status === "applied" && row.revision === lifecycleOff.revision));
   await aligned([lifecycle], lifecycleOff);
   await assert.rejects(fs.access(blockedClient.blockedClient), { code: "ENOENT" });
@@ -746,7 +746,7 @@ async function main() {
   verify("intent failure explicitly vetoes; later branch veto retires intent; committed owner restores while stale-client/intent cleanup fails and retries");
 
   const handoffSource = await lifecycle.snapshot("prepare-branch");
-  await aligned([lifecycle], await setMode("extreme", impact));
+  await aligned([lifecycle], await setMode("extreme", rush));
   const retainedSource = await fs.readFile(baselineFile(handoffSource.sessionId), "utf8");
   await lifecycle.snapshot("fault-inherited-baseline");
   assert.equal((await lifecycle.request("branch", { entryId: handoffSource.branchEntryId })).data.cancelled, false);
@@ -758,7 +758,7 @@ async function main() {
   await assert.rejects(fs.access(baselineFile(handoffChild.sessionId)), { code: "ENOENT" });
   assert.equal(await fs.readFile(baselineFile(handoffSource.sessionId), "utf8"), retainedSource);
   await lifecycle.crash();
-  const handoffOff = await setMode("off", impact);
+  const handoffOff = await setMode("off", rush);
   const handoffRecovered = await start("handoff-cold", true, sol, handoffChild.state.sessionFile);
   await aligned([handoffRecovered], handoffOff);
   const handoffRestored = await handoffRecovered.snapshot();
@@ -772,10 +772,10 @@ async function main() {
   const reenteredSource = await start("source-reentered", true, sol, handoffSource.state.sessionFile);
   await aligned([reenteredSource], handoffOff);
   await reenteredSource.snapshot("auto");
-  await aligned([reenteredSource], await setMode("fast", impact));
+  await aligned([reenteredSource], await setMode("fast", rush));
   assert.equal(JSON.parse(await fs.readFile(baselineFile(handoffSource.sessionId), "utf8")).thinking, "auto");
   await reenteredSource.close();
-  const childOnlyOff = await setMode("off", impact);
+  const childOnlyOff = await setMode("off", rush);
   const childAgain = await start("child-after-parent-reentry", true, sol, handoffChild.state.sessionFile);
   await aligned([childAgain], childOnlyOff);
   const childAgainState = await childAgain.snapshot();
@@ -788,7 +788,7 @@ async function main() {
   const ambiguous = await start("handoff-host-fault", true, sol);
   await ambiguous.snapshot("seed");
   const ambiguousSource = await ambiguous.snapshot("prepare-branch");
-  await aligned([ambiguous], await setMode("extreme", impact));
+  await aligned([ambiguous], await setMode("extreme", rush));
   const ambiguousRetained = await fs.readFile(baselineFile(ambiguousSource.sessionId), "utf8");
   await ambiguous.snapshot("fault-inherited-both");
   assert.equal((await ambiguous.request("branch", { entryId: ambiguousSource.branchEntryId })).data.cancelled, false);
@@ -800,12 +800,12 @@ async function main() {
   assert.equal(ambiguousIntents.length, 1);
   assert.equal(ambiguousIntents[0].confirmed, true);
   await ambiguous.crash();
-  const ambiguousOff = await setMode("off", impact);
+  const ambiguousOff = await setMode("off", rush);
   const ambiguousCold = await start("ambiguous-cold", true, sol, ambiguousChild.state.sessionFile);
-  await until("unproven inherited state fails closed", async () => (await listClients(impact)).find(row =>
+  await until("unproven inherited state fails closed", async () => (await listClients(rush)).find(row =>
     row.sessionId === ambiguousChild.sessionId && row.revision === ambiguousOff.revision &&
     row.status === "error" && /inherited recovery is ambiguous/.test(row.error ?? "")));
-  const ambiguousRows = await listClients(impact);
+  const ambiguousRows = await listClients(rush);
   assert.notEqual(ambiguousRows.find(row => row.sessionId === ambiguousChild.sessionId)?.appliedRevision, ambiguousOff.revision);
   assert.equal(await fs.readFile(baselineFile(ambiguousSource.sessionId), "utf8"), ambiguousRetained);
   await ambiguousCold.snapshot();
@@ -821,7 +821,7 @@ async function main() {
   assert.equal(plainChild.ownHandoff.baseline, null);
   assert.equal((await sourceIntents(plainSource.sessionId)).length, 0);
   verify("never-enabled plain OFF branches remain usable without an active-mode transition intent");
-  const resumeActive = await setMode("extreme", impact);
+  const resumeActive = await setMode("extreme", rush);
   await aligned([plain], resumeActive);
   assert.equal((await plain.request("switch_session", { sessionPath: handoffChild.state.sessionFile })).data.cancelled, false);
   await aligned([plain], resumeActive);
@@ -830,7 +830,7 @@ async function main() {
   const resumedBaseline = JSON.parse(await fs.readFile(baselineFile(resumedTarget.sessionId), "utf8"));
   assert.equal(resumedBaseline.thinking, laterChildChoice.configured, "ordinary resume captures target's own selector, not the previous owner's");
   assert.deepEqual(resumedBaseline.tiers, laterChildChoice.tiers);
-  await aligned([plain], await setMode("off", impact));
+  await aligned([plain], await setMode("off", rush));
   const resumedOff = await plain.snapshot();
   assert.equal(resumedOff.configured, laterChildChoice.configured);
   assert.deepEqual(resumedOff.model, laterChildChoice.model);
@@ -840,7 +840,7 @@ async function main() {
 
   const timed = await start("native-transition-timeout", true, sol);
   const timedBaseline = await timed.snapshot("seed");
-  await aligned([timed], await setMode("extreme", impact));
+  await aligned([timed], await setMode("extreme", rush));
   const timedSaved = await fs.readFile(baselineFile(timedBaseline.sessionId), "utf8");
   await timed.snapshot("block-model-refresh");
   timed.expectedNativeTimeouts = 1;
@@ -856,8 +856,8 @@ async function main() {
   assert.equal((await timed.request("switch_session", { sessionPath: handoffChild.state.sessionFile })).data.cancelled, true);
   assert.equal((await timed.snapshot()).sessionId, timedBaseline.sessionId);
   assert.equal(timed.nativeTimeouts.length, 1, "subsequent attempts must cancel promptly, not restart preparation");
-  const timedOff = await setMode("off", impact);
-  await until("OFF waits for the expired host setter to settle", async () => (await listClients(impact)).find(row =>
+  const timedOff = await setMode("off", rush);
+  await until("OFF waits for the expired host setter to settle", async () => (await listClients(rush)).find(row =>
     row.sessionId === timedBaseline.sessionId && row.revision === timedOff.revision && row.status === "pending"));
   assert.equal(await fs.readFile(baselineFile(timedBaseline.sessionId), "utf8"), timedSaved);
   await timed.snapshot("release-model-refresh");

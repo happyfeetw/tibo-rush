@@ -13,14 +13,14 @@ afterEach(async () => {
   temporary.clear();
 });
 async function home() {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "omp-impact-test-"));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "tibo-rush-test-"));
   temporary.add(dir);
   return dir;
 }
 async function cli(dir, ...args) {
   const child = Bun.spawn([process.execPath, path.join(root, "src/cli/controller.mjs"), ...args, "--json"], {
     cwd: dir,
-    env: { PATH: process.env.PATH, HOME: dir, TMPDIR: dir, TIBO_IMPACT_HOME: dir },
+    env: { PATH: process.env.PATH, HOME: dir, TMPDIR: dir, TIBO_RUSH_HOME: dir },
     stdout: "pipe", stderr: "pipe",
   });
   const [stdout, stderr, code] = await Promise.all([
@@ -29,7 +29,7 @@ async function cli(dir, ...args) {
   return { code, data: JSON.parse(code === 0 ? stdout : stderr) };
 }
 async function policies(dir) {
-  const value = JSON.parse(await fs.readFile(path.join(root, "presets/tibo-impact.json"), "utf8"));
+  const value = JSON.parse(await fs.readFile(path.join(root, "presets/tibo-rush.json"), "utf8"));
   await atomicJson(path.join(dir, "policies.json"), value);
   return value;
 }
@@ -159,7 +159,7 @@ describe("requested state and configurable policies", () => {
     expect(stderr).toBe("");
     expect(code).toBe(0);
     const status = JSON.parse(stdout);
-    expect(status.home).toBe(path.join(dir, ".tibo-impact"));
+    expect(status.home).toBe(path.join(dir, ".tibo-rush"));
     expect(status.requested.mode).toBe("off");
     expect(await fs.readdir(dir)).toEqual([]);
   });

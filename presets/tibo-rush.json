@@ -35,7 +35,7 @@
         "scout": "default",
         "sonic": "default"
       },
-      "instruction": "Tibo Impact temporarily overrides only the listed model roles, agent models and service tiers. Keep risk-based review gates and avoid needless parallelism or rework. Search-tool routing and normal configured fallback chains are unchanged; this mode does not guarantee API fallback is disabled. OFF restores the captured session main model, thinking, service tiers and runtime overrides."
+      "instruction": "Tibo Rush temporarily overrides only the listed model roles, agent models and service tiers. Keep risk-based review gates and avoid needless parallelism or rework. Search-tool routing and normal configured fallback chains are unchanged; this mode does not guarantee API fallback is disabled. OFF restores the captured session main model, thinking, service tiers and runtime overrides."
     },
     "fast": {
       "main": { "provider": "openai-codex", "id": "gpt-6-astra", "thinking": "medium" },
@@ -71,7 +71,7 @@
         "scout": "default",
         "sonic": "default"
       },
-      "instruction": "Tibo Impact temporarily overrides only the listed model roles, agent models and service tiers. Keep risk-based review gates and avoid needless parallelism or rework. Search-tool routing and normal configured fallback chains are unchanged; this mode does not guarantee API fallback is disabled. OFF restores the captured session main model, thinking, service tiers and runtime overrides."
+      "instruction": "Tibo Rush temporarily overrides only the listed model roles, agent models and service tiers. Keep risk-based review gates and avoid needless parallelism or rework. Search-tool routing and normal configured fallback chains are unchanged; this mode does not guarantee API fallback is disabled. OFF restores the captured session main model, thinking, service tiers and runtime overrides."
     },
     "extreme": {
       "main": { "provider": "openai-codex", "id": "gpt-6-astra", "thinking": "medium" },
@@ -107,7 +107,7 @@
         "scout": "priority",
         "sonic": "priority"
       },
-      "instruction": "Tibo Impact temporarily overrides only the listed model roles, agent models and service tiers. Keep risk-based review gates and avoid needless parallelism or rework. Priority is Codex Fast, not ultrafast. Search-tool routing and normal configured fallback chains are unchanged; this mode does not guarantee API fallback is disabled. OFF restores the captured session main model, thinking, service tiers and runtime overrides."
+      "instruction": "Tibo Rush temporarily overrides only the listed model roles, agent models and service tiers. Keep risk-based review gates and avoid needless parallelism or rework. Priority is Codex Fast, not ultrafast. Search-tool routing and normal configured fallback chains are unchanged; this mode does not guarantee API fallback is disabled. OFF restores the captured session main model, thinking, service tiers and runtime overrides."
     }
   }
 }

@@ -15,8 +15,8 @@ assert(Number.isFinite(timeout) && timeout >= 1000, "PI_SMOKE_TIMEOUT_MS must be
 assert(process.env.PI_BIN || process.env.PI_CLI_JS, "Set PI_BIN to a Pi executable or PI_CLI_JS to its CLI JavaScript file");
 const executable = process.env.PI_BIN || process.env.NODE_BIN || "node";
 const prefix = process.env.PI_BIN ? [] : [path.resolve(process.env.PI_CLI_JS)];
-const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "tibo-impact-pi-smoke-"));
-const home = path.join(temporary, "impact");
+const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "tibo-rush-pi-smoke-"));
+const home = path.join(temporary, "rush");
 const workspace = path.join(temporary, "workspace");
 const agentDir = path.join(temporary, "pi-agent");
 const journal = path.join(temporary, "fixture.jsonl");
@@ -216,7 +216,7 @@ require("node:module").syncBuiltinESMExports();
 let failure;
 try {
   await Promise.all([workspace, agentDir, home, path.join(temporary, "user-home")].map(dir => fs.mkdir(dir, { recursive: true, mode: 0o700 })));
-  const policies = JSON.parse(await fs.readFile(path.join(root, "presets/tibo-impact.json"), "utf8"));
+  const policies = JSON.parse(await fs.readFile(path.join(root, "presets/tibo-rush.json"), "utf8"));
   await atomicJson(path.join(home, "policies.json"), policies);
   const baseline = { provider: "openai-codex", id: "tibo-smoke-baseline", thinking: "low" };
   const modelIds = [...new Set([baseline.id, ...Object.values(policies.modes).map(policy => policy.main.id)])];
@@ -229,13 +229,13 @@ try {
     PATH: process.env.PATH || "/usr/bin:/bin", HOME: path.join(temporary, "user-home"),
     TMPDIR: temporary, XDG_CONFIG_HOME: path.join(temporary, "config"),
     PI_CODING_AGENT_DIR: agentDir, PI_OFFLINE: "1", PI_TELEMETRY: "0",
-    TIBO_IMPACT_HOME: home, TIBO_PI_FIXTURE_JOURNAL: journal,
+    TIBO_RUSH_HOME: home, TIBO_PI_FIXTURE_JOURNAL: journal,
     TIBO_PI_FIXTURE_RELEASE: release, TIBO_PI_FIXTURE_MALFORMED: malformedPayload,
     TIBO_PI_NETWORK_LOG: blockedNetwork,
     NODE_OPTIONS: `--require=${JSON.stringify(guard)}`, NO_COLOR: "1",
   };
   const commonArgs = ["--mode", "rpc", "--no-extensions", "--no-skills", "--no-prompt-templates", "--no-themes", "--no-mcp", "--no-tools",
-    "--extension", fixture, "--extension", path.join(root, "src/hosts/tibo-impact-pi/index.ts"),
+    "--extension", fixture, "--extension", path.join(root, "src/hosts/tibo-rush-pi/index.ts"),
     "--session-dir", path.join(temporary, "sessions")];
   function start(args = []) { return new Rpc([...commonArgs, ...args], env); }
   async function client(rpc, requested, status = "applied") {
@@ -256,9 +256,9 @@ try {
   async function command(rpc, argument) {
     // Never let an unknown slash command fall through as a billed/model prompt.
     const { commands } = await rpc.request("get_commands");
-    assert(commands.some(item => item.name === "tibo-impact" && item.source === "extension"), "tibo-impact extension command is not registered");
+    assert(commands.some(item => item.name === "tibo-rush" && item.source === "extension"), "tibo-rush extension command is not registered");
     const before = (await entries()).length;
-    const response = await rpc.request("prompt", { message: `/tibo-impact ${argument}` });
+    const response = await rpc.request("prompt", { message: `/tibo-rush ${argument}` });
     assert.equal(response?.disposition, "handled", "extension command unexpectedly started a provider run");
     assert.equal((await entries()).length, before, "extension command invoked the fixture model");
   }

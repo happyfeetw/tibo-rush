@@ -1,8 +1,8 @@
-# Tibo Impact 工作约定
+# Tibo Rush 工作约定
 
 ## 范围与不变量
 
-- 产品主体是 Tibo Impact；`src/hosts/tibo-impact-omp/`、`src/hosts/tibo-impact-pi/` 是平级适配器。共享核心不得依赖宿主 API；不修改宿主本体或用户持久角色配置。
+- 产品主体是 Tibo Rush；`src/hosts/tibo-rush-omp/`、`src/hosts/tibo-rush-pi/` 是平级适配器。共享核心不得依赖宿主 API；不修改宿主本体或用户持久角色配置。
 - `src/core/` 管理共享状态和预设；`src/cli/` 提供宿主无关 CLI；`presets/` 是可替换的示例策略。宿主不支持的能力须在状态与文档中明确，不以空操作报告成功。
 - 活动模式应用前必须持久化原状态；`off` 不依赖策略文件有效，冷续接仍须恢复；失败不得报告 applied。
 - 不提交 `state.json`、`clients/`、`baselines/`、认证或会话记录。不使用真实用户会话做测试，不发付费模型请求。

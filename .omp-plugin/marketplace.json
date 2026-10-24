@@ -1,15 +1,15 @@
 {
-  "name": "tibo-impact",
+  "name": "tibo-rush",
   "owner": { "name": "happyfeetw" },
-  "metadata": { "description": "Tibo Impact: cross-session model presets with peer host adapters", "version": "0.1.0" },
+  "metadata": { "description": "One-switch subscription quota sprint modes for OMP and Pi", "version": "0.2.0" },
   "plugins": [
     {
-      "name": "tibo-impact-omp",
-      "description": "Switch routing and speed presets across connected OMP sessions, then restore their baselines",
+      "name": "tibo-rush-omp",
+      "description": "One-switch subscription quota sprint modes for OMP and Pi",
       "source": "./",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "license": "MIT",
-      "homepage": "https://github.com/happyfeetw/tibo-impact"
+      "homepage": "https://github.com/happyfeetw/tibo-rush"
     }
   ]
 }

@@ -4,7 +4,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import type { AgentSession, ExtensionAPI, ExtensionContext } from '@oh-my-pi/pi-coding-agent';
 import { lookup, type AnySetting } from '@oh-my-pi/pi-coding-agent/config/registry';
 import { atomicJson, getHome, listClients, policyFor, readState, setMode, MODES } from '../../core/lib.mjs';
-import type { ThinkingLevel as Thinking, ServiceTiers as Tiers, ImpactState as State, ImpactMode as Mode, ImpactPolicy as Policy } from '../../core/types';
+import type { ThinkingLevel as Thinking, ServiceTiers as Tiers, RushState as State, RushMode as Mode, RushPolicy as Policy } from '../../core/types';
 
 type Context = ExtensionContext;
 type SettingKey = 'modelRoles' | 'task.agentModelOverrides' | 'tier.subagent' | 'task.agentServiceTierOverrides';
@@ -33,10 +33,10 @@ const HANDLES: Record<SettingKey, AnySetting | undefined> = {
 };
 const THINKING: Record<string, true> = { off: true, minimal: true, low: true, medium: true, high: true, xhigh: true, max: true, auto: true };
 const TIERS: Record<string, true> = { none: true, inherit: true, auto: true, default: true, flex: true, scale: true, priority: true, ultrafast: true };
-const MARKER = '<tibo-impact-policy>';
-const END_MARKER = '</tibo-impact-policy>';
-const HANDOFF = 'tibo-impact-session-handoff';
-const INTENT = 'tibo-impact-transition-intent';
+const MARKER = '<tibo-rush-policy>';
+const END_MARKER = '</tibo-rush-policy>';
+const HANDOFF = 'tibo-rush-session-handoff';
+const INTENT = 'tibo-rush-transition-intent';
 
 function record(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -50,7 +50,7 @@ function parseBaseline(value: unknown, sessionId: string): Baseline {
       typeof value.model.id !== 'string' || !value.model.id ||
       (value.thinking !== null && (typeof value.thinking !== 'string' || !Object.hasOwn(THINKING, value.thinking))) || !record(value.tiers) ||
       !Object.values(value.tiers).every(tier => typeof tier === 'string' && Object.hasOwn(TIERS, tier)) || !record(value.settings)) {
-    throw new Error('Invalid tibo-impact session baseline; refusing to overwrite it');
+    throw new Error('Invalid tibo-rush session baseline; refusing to overwrite it');
   }
   for (const key of KEYS) {
     const capture = value.settings[key];
@@ -59,9 +59,9 @@ function parseBaseline(value: unknown, sessionId: string): Baseline {
       throw new Error(`Invalid baseline setting: ${key}`);
     }
   }
-  if (value.restored !== undefined && value.restored !== true) throw new Error('Invalid tibo-impact restoration acknowledgement');
+  if (value.restored !== undefined && value.restored !== true) throw new Error('Invalid tibo-rush restoration acknowledgement');
   if (value.handoff !== undefined && (typeof value.handoff !== 'string' || !/^[a-f0-9-]{36}$/.test(value.handoff))) {
-    throw new Error('Invalid tibo-impact handoff generation');
+    throw new Error('Invalid tibo-rush handoff generation');
   }
   // Every persisted field consumed below was validated above; SDK aliases are not runtime schemas.
   return value as unknown as Baseline;
@@ -122,7 +122,7 @@ async function removeOwnedFile(file: string): Promise<void> {
   }
 }
 
-export default function tiboImpact(pi: ExtensionAPI) {
+export default function tiboRush(pi: ExtensionAPI) {
   let context: Context | undefined;
   let sessionId = '';
   let baseline: Baseline | undefined;
@@ -474,8 +474,8 @@ export default function tiboImpact(pi: ExtensionAPI) {
       publishedSignature = signature;
       publishedAt = now;
     }
-    ctx.ui.setStatus('tibo-impact', requested.mode === 'off' && status === 'applied' ? undefined :
-      `tibo-impact requested ${requested.mode} · ${status} · routing ${routingPolicy ? routingMode : owned ? 'unknown' : 'baseline'} · main ${row.model}${lastError ? `: ${lastError}` : ''}`);
+    ctx.ui.setStatus('tibo-rush', requested.mode === 'off' && status === 'applied' ? undefined :
+      `tibo-rush requested ${requested.mode} · ${status} · routing ${routingPolicy ? routingMode : owned ? 'unknown' : 'baseline'} · main ${row.model}${lastError ? `: ${lastError}` : ''}`);
   }
 
   async function reconcile(ctx: Context, owner: string, epoch: number) {
@@ -548,7 +548,7 @@ export default function tiboImpact(pi: ExtensionAPI) {
               hostSession(ctx, owner).configuredThinkingLevel() !== policy.main.thinking ||
               (policy.main.thinking !== 'auto' && pi.getThinkingLevel() !== policy.main.thinking) ||
               pi.getServiceTiers().openai !== policy.tier) {
-            throw new Error('Main model/thinking/tier changed outside Tibo Impact; user choice left unchanged. Reissue a mode or use off.');
+            throw new Error('Main model/thinking/tier changed outside Tibo Rush; user choice left unchanged. Reissue a mode or use off.');
           }
           appliedMode = requested.mode;
           appliedRevision = requested.revision;
@@ -571,7 +571,7 @@ export default function tiboImpact(pi: ExtensionAPI) {
       if (!current(ctx, owner, epoch)) return;
       status = 'error';
       lastError = String(error).replace(/[\r\n\t]/g, ' ').slice(0, 240);
-      ctx.ui.setStatus('tibo-impact', `tibo-impact error: ${lastError}`);
+      ctx.ui.setStatus('tibo-rush', `tibo-rush error: ${lastError}`);
     });
     return serial;
   }
@@ -591,7 +591,7 @@ export default function tiboImpact(pi: ExtensionAPI) {
       requireAttempt(ctx, attempt);
       if (fresh) {
         if (!baseline || baseline.restored) return;
-        if (!ctx.isIdle()) throw new Error('Use off or wait until idle before /new while Tibo Impact owns the session');
+        if (!ctx.isIdle()) throw new Error('Use off or wait until idle before /new while Tibo Rush owns the session');
         // /new has no ancestry. Make what it inherits naturally original before
         // the commit, retaining ownership and the baseline if a later hook vetoes.
         appliedRevision = '';
@@ -824,23 +824,23 @@ export default function tiboImpact(pi: ExtensionAPI) {
     }
     return { systemPrompt: prompt };
   });
-  pi.registerCommand('tibo-impact', {
-    description: 'Global Tibo Impact configurable presets: regular | fast | extreme | off | status',
+  pi.registerCommand('tibo-rush', {
+    description: 'Global Tibo Rush configurable presets: regular | fast | extreme | off | status',
     handler: async (args: string, ctx: Context) => {
-      if (ctx.agent.kind !== 'main') throw new Error('tibo-impact is a main-session command');
+      if (ctx.agent.kind !== 'main') throw new Error('tibo-rush is a main-session command');
       const mode = args.trim() || 'status';
       if (mode === 'status') {
         const state = await readState();
         const clients = await listClients();
         const model = ctx.models.current();
-        ctx.ui.notify(`tibo-impact requested ${state.mode} · ${clients.length} live sessions; this session ${status}, routing ${routingPolicy ? routingMode : owned ? 'unknown' : 'baseline'}, main ${model ? `${model.provider}/${model.id}` : 'unknown'}${lastError ? `; ${lastError}` : ''}. Use tibo-impact status for all sessions.`, lastError ? 'warning' : 'info');
+        ctx.ui.notify(`tibo-rush requested ${state.mode} · ${clients.length} live sessions; this session ${status}, routing ${routingPolicy ? routingMode : owned ? 'unknown' : 'baseline'}, main ${model ? `${model.provider}/${model.id}` : 'unknown'}${lastError ? `; ${lastError}` : ''}. Use tibo-rush status for all sessions.`, lastError ? 'warning' : 'info');
         return;
       }
       if (!MODES.includes(mode)) throw new Error('Use regular, fast, extreme, off or status');
       await setMode(mode);
       context = ctx;
       await enqueue(ctx);
-      ctx.ui.notify(status === 'error' ? `Requested ${mode}, but this session failed: ${lastError}. Use off to restore.` : `Requested global tibo-impact ${mode}; this session ${status}${status === 'pending' ? mode === 'off' ? ' (existing routing retained; restoration waits until idle)' : ' (routing applied; main waits until idle)' : ''}.`, status === 'error' ? 'warning' : 'info');
+      ctx.ui.notify(status === 'error' ? `Requested ${mode}, but this session failed: ${lastError}. Use off to restore.` : `Requested global tibo-rush ${mode}; this session ${status}${status === 'pending' ? mode === 'off' ? ' (existing routing retained; restoration waits until idle)' : ' (routing applied; main waits until idle)' : ''}.`, status === 'error' ? 'warning' : 'info');
     },
   });
 }

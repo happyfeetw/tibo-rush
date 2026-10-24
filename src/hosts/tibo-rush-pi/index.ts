@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import type { ThinkingLevel as Thinking } from '@earendil-works/pi-agent-core';
 import { atomicJson, getHome, listClients, MODES, policyFor, readState, setMode } from '../../core/lib.mjs';
-import type { ImpactMode, ImpactPolicy, ImpactState } from '../../core/types';
+import type { RushMode, RushPolicy, RushState } from '../../core/types';
 
 type Model = NonNullable<ExtensionContext['model']>;
 type Baseline = {
@@ -12,8 +12,8 @@ type Baseline = {
 };
 type Attachment = { ctx: ExtensionContext; sessionId: string; active: boolean };
 const THINKING: Record<string, true> = { off: true, minimal: true, low: true, medium: true, high: true, xhigh: true, max: true };
-const MARKER = '<tibo-impact-policy>';
-const END_MARKER = '</tibo-impact-policy>';
+const MARKER = '<tibo-rush-policy>';
+const END_MARKER = '</tibo-rush-policy>';
 
 function record(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -26,7 +26,7 @@ function parseBaseline(value: unknown, sessionId: string): Baseline {
       !record(value.model) || typeof value.model.provider !== 'string' || !value.model.provider ||
       typeof value.model.id !== 'string' || !value.model.id ||
       typeof value.thinking !== 'string' || !Object.hasOwn(THINKING, value.thinking)) {
-    throw new Error('Invalid Pi tibo-impact baseline; refusing to overwrite it. Repair the saved baseline before retrying OFF.');
+    throw new Error('Invalid Pi tibo-rush baseline; refusing to overwrite it. Repair the saved baseline before retrying OFF.');
   }
   return value as unknown as Baseline;
 }
@@ -60,18 +60,18 @@ function stripPolicy(prompt: string): string {
   }
 }
 
-export default function tiboImpact(pi: ExtensionAPI) {
+export default function tiboRush(pi: ExtensionAPI) {
   let attachment: Attachment | undefined;
   let timer: NodeJS.Timeout | undefined;
   let serial: Promise<void> = Promise.resolve();
   let baseline: Baseline | undefined;
-  let requested: ImpactState = { version: 1, mode: 'off', revision: 'initial', updatedAt: new Date(0).toISOString() };
+  let requested: RushState = { version: 1, mode: 'off', revision: 'initial', updatedAt: new Date(0).toISOString() };
   let policyRevision = '';
-  let requestedPolicy: ImpactPolicy | null = null;
+  let requestedPolicy: RushPolicy | null = null;
   let policyError: unknown;
-  let appliedMode: ImpactMode = 'off';
+  let appliedMode: RushMode = 'off';
   let appliedRevision = '';
-  let appliedPolicy: ImpactPolicy | undefined;
+  let appliedPolicy: RushPolicy | undefined;
   let tier: 'default' | 'priority' | undefined;
   let transitionFailure: { revision: string; error: string } | undefined;
   let hookFailure: { revision: string; error: string } | undefined;
@@ -152,8 +152,8 @@ export default function tiboImpact(pi: ExtensionAPI) {
       publishedSignature = signature;
       publishedAt = now;
     }
-    ctx.ui.setStatus('tibo-impact', requested.mode === 'off' && status === 'applied' ? undefined :
-      `tibo-impact ${requested.mode} · ${status} · main ${row.model}:${row.thinking} · tier ${row.tier} · no role routing${lastError ? `: ${lastError}` : ''}`);
+    ctx.ui.setStatus('tibo-rush', requested.mode === 'off' && status === 'applied' ? undefined :
+      `tibo-rush ${requested.mode} · ${status} · main ${row.model}:${row.thinking} · tier ${row.tier} · no role routing${lastError ? `: ${lastError}` : ''}`);
   }
   async function reconcile(owner: Attachment): Promise<void> {
     if (!current(owner)) return;
@@ -238,7 +238,7 @@ export default function tiboImpact(pi: ExtensionAPI) {
     serial = serial.then(() => reconcile(owner)).catch(async error => {
       if (!current(owner)) return;
       failTransition(error);
-      owner.ctx.ui.setStatus('tibo-impact', `tibo-impact error: ${lastError}`);
+      owner.ctx.ui.setStatus('tibo-rush', `tibo-rush error: ${lastError}`);
       // A failed write must be retried by the next heartbeat, not become an unhandled rejection.
       try { await publish(owner, true); } catch { /* The footer still exposes persistence failure. */ }
     });
@@ -255,7 +255,7 @@ export default function tiboImpact(pi: ExtensionAPI) {
     // OFF restores them. Reload/session replacement must not overwrite that capture.
     tier = undefined;
     await removeOwnedFile(clientPath(owner.sessionId));
-    owner.ctx.ui.setStatus('tibo-impact', undefined);
+    owner.ctx.ui.setStatus('tibo-rush', undefined);
     if (attachment === owner) attachment = undefined;
   }
 
@@ -323,23 +323,23 @@ export default function tiboImpact(pi: ExtensionAPI) {
       lastError = transitionFailure?.revision === requested.revision ? transitionFailure.error : error;
       // A stale request error is diagnostic, not a failure of the pending transition.
       if (requested.revision === requestRevision) status = 'error';
-      try { await publish(owner, true); } catch (error) { owner.ctx.ui.setStatus('tibo-impact', `tibo-impact error: ${message(error)}`); }
+      try { await publish(owner, true); } catch (error) { owner.ctx.ui.setStatus('tibo-rush', `tibo-rush error: ${message(error)}`); }
       return;
     }
     return { ...payload, service_tier: requestTier };
   });
-  pi.registerCommand('tibo-impact', {
-    description: 'Global Tibo Impact: regular | fast | extreme | off | status (Pi has no OMP role routing)',
+  pi.registerCommand('tibo-rush', {
+    description: 'Global Tibo Rush: regular | fast | extreme | off | status (Pi has no OMP role routing)',
     handler: async (args, ctx) => {
       const owner = attachment;
-      if (!owner || !current(owner)) throw new Error('tibo-impact requires an active Pi session');
+      if (!owner || !current(owner)) throw new Error('tibo-rush requires an active Pi session');
       owner.ctx = ctx;
       const mode = args.trim() || 'status';
       if (mode === 'status') {
         await enqueue(owner);
         const state = await readState();
         const clients = await listClients();
-        ctx.ui.notify(`tibo-impact requested ${state.mode}; ${clients.length} live sessions. Pi: ${status}; actual main ${ctx.model ? `${ctx.model.provider}/${ctx.model.id}` : 'unknown'}:${pi.getThinkingLevel()}; tier ${tier ?? 'none'}; role routing unsupported; priority hook ${supportsPriority(ctx.model) ? 'supported (server acceptance not guaranteed)' : 'unsupported'}${lastError ? `; ${lastError}` : ''}. Use tibo-impact status for all sessions.`, lastError ? 'warning' : 'info');
+        ctx.ui.notify(`tibo-rush requested ${state.mode}; ${clients.length} live sessions. Pi: ${status}; actual main ${ctx.model ? `${ctx.model.provider}/${ctx.model.id}` : 'unknown'}:${pi.getThinkingLevel()}; tier ${tier ?? 'none'}; role routing unsupported; priority hook ${supportsPriority(ctx.model) ? 'supported (server acceptance not guaranteed)' : 'unsupported'}${lastError ? `; ${lastError}` : ''}. Use tibo-rush status for all sessions.`, lastError ? 'warning' : 'info');
         return;
       }
       if (!MODES.includes(mode)) throw new Error('Use regular, fast, extreme, off or status');
@@ -347,7 +347,7 @@ export default function tiboImpact(pi: ExtensionAPI) {
       await enqueue(owner);
       ctx.ui.notify(status === 'error'
         ? `Requested global ${mode}, but Pi failed: ${lastError}. Reissue after fixing the cause, or use OFF.`
-        : `Requested global tibo-impact ${mode}; Pi ${status}${status === 'pending' ? ' (main/thinking/tier changes wait until idle)' : ''}. Pi does not install OMP role/subagent routing.`, status === 'error' ? 'warning' : 'info');
+        : `Requested global tibo-rush ${mode}; Pi ${status}${status === 'pending' ? ' (main/thinking/tier changes wait until idle)' : ''}. Pi does not install OMP role/subagent routing.`, status === 'error' ? 'warning' : 'info');
     },
   });
 }

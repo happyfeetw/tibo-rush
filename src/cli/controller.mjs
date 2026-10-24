@@ -1,7 +1,7 @@
 import process from "node:process";
 import {
   MODES,
-  TiboImpactError,
+  TiboRushError,
   getHome,
   listClients,
   policyFor,
@@ -10,16 +10,15 @@ import {
 } from "../core/lib.mjs";
 
 const BOOTSTRAP_REMINDER =
-  "提示：模式文件只控制已加载 tibo-impact 扩展的会话，不会把新扩展注入现有进程；" +
+  "提示：模式文件只控制已加载 tibo-rush 扩展的会话，不会把新扩展注入现有进程；" +
   "请对相关 OMP/Pi 主会话首次重启续接以加载对应扩展。当前无已注册且心跳有效的客户端。";
 
-const USAGE = `tibo-impact — Tibo Impact shared mode CLI
+const USAGE = `tibo-rush — Tibo Rush shared mode CLI
 
 用法 / Usage:
-  tibo-impact <off|regular|fast|extreme>   设置请求模式 / set requested mode
-  tibo-impact status                       只读状态 / read-only status
-  tibo-impact --help                       显示帮助 / show help
-  omp-impact                              Alias of tibo-impact
+  tibo-rush <off|regular|fast|extreme>   设置请求模式 / set requested mode
+  tibo-rush status                       只读状态 / read-only status
+  tibo-rush --help                       显示帮助 / show help
 
 选项 / Options:
   --json                                  JSON 输出（便于 smoke）/ machine-readable output
@@ -31,9 +30,9 @@ const USAGE = `tibo-impact — Tibo Impact shared mode CLI
   extreme   fast mapping + OMP Codex Fast(priority), not ultrafast
 
 配置 / Configuration:
-  Bundled presets: presets/tibo-impact.json
+  Bundled presets: presets/tibo-rush.json
   Override: <state-home>/policies.json (complete version:1 document, all three modes)
-  State home: TIBO_IMPACT_HOME or ~/.tibo-impact
+  State home: TIBO_RUSH_HOME or ~/.tibo-rush
   Reissue a mode after editing policies; each request creates a new revision.
   OFF restores without reading policies, even when the override is broken.
   Search routing and normal configured fallback chains are unchanged.
@@ -140,7 +139,7 @@ function printHuman(state, summary, wrote) {
 }
 
 /**
- * @param {Array<import("../core/types.ts").ImpactClient>} clients
+ * @param {Array<import("../core/types.ts").RushClient>} clients
  */
 function printClientDetails(clients) {
   for (const client of clients) {
@@ -206,7 +205,7 @@ async function run(argv) {
   const command = args[0];
   if (command === "status") {
     if (args.length > 1) {
-      throw new TiboImpactError(`Unexpected arguments: ${args.slice(1).join(" ")}`, {
+      throw new TiboRushError(`Unexpected arguments: ${args.slice(1).join(" ")}`, {
         code: "USAGE",
       });
     }
@@ -215,11 +214,11 @@ async function run(argv) {
   }
 
   if (!MODES.includes(command)) {
-    throw new TiboImpactError(`Unknown command or mode: ${command}`, { code: "USAGE" });
+    throw new TiboRushError(`Unknown command or mode: ${command}`, { code: "USAGE" });
   }
 
   if (args.length > 1) {
-    throw new TiboImpactError(`Unexpected arguments: ${args.slice(1).join(" ")}`, {
+    throw new TiboRushError(`Unexpected arguments: ${args.slice(1).join(" ")}`, {
       code: "USAGE",
     });
   }
@@ -232,7 +231,7 @@ export async function main(argv = process.argv.slice(2)) {
     await run(argv);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    const code = err instanceof TiboImpactError ? err.code : "FATAL";
+    const code = err instanceof TiboRushError ? err.code : "FATAL";
     if (argv.includes("--json")) {
       console.error(JSON.stringify({ ok: false, error: message, code }));
     } else {

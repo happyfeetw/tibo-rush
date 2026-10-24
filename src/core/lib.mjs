@@ -7,23 +7,23 @@ import { fileURLToPath } from "node:url";
 
 export const MODES = ["off", "regular", "fast", "extreme"];
 
-const DEFAULT_HOME = path.join(homedir(), ".tibo-impact");
-const BUNDLED_POLICIES = fileURLToPath(new URL("../../presets/tibo-impact.json", import.meta.url));
+const DEFAULT_HOME = path.join(homedir(), ".tibo-rush");
+const BUNDLED_POLICIES = fileURLToPath(new URL("../../presets/tibo-rush.json", import.meta.url));
 const HEARTBEAT_MAX_AGE_MS = 30_000;
 const CLIENT_STATUSES = new Set(["applied", "pending", "error"]);
 
 
-export class TiboImpactError extends Error {
+export class TiboRushError extends Error {
   constructor(message, { code } = {}) {
     super(message);
-    this.name = "TiboImpactError";
-    this.code = code ?? "TIBO_IMPACT_ERROR";
+    this.name = "TiboRushError";
+    this.code = code ?? "TIBO_RUSH_ERROR";
   }
 }
 
 /** @returns {string} */
 export function getHome() {
-  const home = process.env.TIBO_IMPACT_HOME || DEFAULT_HOME;
+  const home = process.env.TIBO_RUSH_HOME || DEFAULT_HOME;
   return path.resolve(home);
 }
 
@@ -53,24 +53,24 @@ function isIsoDateString(value) {
  */
 function parseRequestedState(raw) {
   if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
-    throw new TiboImpactError("state.json: root must be an object", { code: "STATE_MALFORMED" });
+    throw new TiboRushError("state.json: root must be an object", { code: "STATE_MALFORMED" });
   }
   const record = raw;
   if (record.version !== 1) {
-    throw new TiboImpactError("state.json: version must be 1", { code: "STATE_MALFORMED" });
+    throw new TiboRushError("state.json: version must be 1", { code: "STATE_MALFORMED" });
   }
   if (typeof record.mode !== "string" || !MODES.includes(record.mode)) {
-    throw new TiboImpactError(`state.json: invalid mode "${String(record.mode)}"`, {
+    throw new TiboRushError(`state.json: invalid mode "${String(record.mode)}"`, {
       code: "STATE_MALFORMED",
     });
   }
   if (typeof record.revision !== "string" || record.revision.length === 0) {
-    throw new TiboImpactError("state.json: revision must be a non-empty string", {
+    throw new TiboRushError("state.json: revision must be a non-empty string", {
       code: "STATE_MALFORMED",
     });
   }
   if (!isIsoDateString(record.updatedAt)) {
-    throw new TiboImpactError("state.json: updatedAt must be a valid ISO-8601 string", {
+    throw new TiboRushError("state.json: updatedAt must be a valid ISO-8601 string", {
       code: "STATE_MALFORMED",
     });
   }
@@ -87,14 +87,14 @@ function parseRequestedState(raw) {
  */
 function parseClientRecord(raw, fileLabel) {
   if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
-    throw new TiboImpactError(`${fileLabel}: root must be an object`, { code: "CLIENT_MALFORMED" });
+    throw new TiboRushError(`${fileLabel}: root must be an object`, { code: "CLIENT_MALFORMED" });
   }
   const record = raw;
   if (record.version !== 1) {
-    throw new TiboImpactError(`${fileLabel}: version must be 1`, { code: "CLIENT_MALFORMED" });
+    throw new TiboRushError(`${fileLabel}: version must be 1`, { code: "CLIENT_MALFORMED" });
   }
   if (typeof record.pid !== "number" || !Number.isInteger(record.pid) || record.pid <= 0) {
-    throw new TiboImpactError(`${fileLabel}: pid must be a positive integer`, {
+    throw new TiboRushError(`${fileLabel}: pid must be a positive integer`, {
       code: "CLIENT_MALFORMED",
     });
   }
@@ -109,44 +109,44 @@ function parseClientRecord(raw, fileLabel) {
     "tier",
   ]) {
     if (typeof record[key] !== "string" || record[key].length === 0) {
-      throw new TiboImpactError(`${fileLabel}: ${key} must be a non-empty string`, {
+      throw new TiboRushError(`${fileLabel}: ${key} must be a non-empty string`, {
         code: "CLIENT_MALFORMED",
       });
     }
   }
   if (!MODES.includes(record.requestedMode)) {
-    throw new TiboImpactError(`${fileLabel}: invalid requestedMode`, { code: "CLIENT_MALFORMED" });
+    throw new TiboRushError(`${fileLabel}: invalid requestedMode`, { code: "CLIENT_MALFORMED" });
   }
   if (!MODES.includes(record.appliedMode)) {
-    throw new TiboImpactError(`${fileLabel}: invalid appliedMode`, { code: "CLIENT_MALFORMED" });
+    throw new TiboRushError(`${fileLabel}: invalid appliedMode`, { code: "CLIENT_MALFORMED" });
   }
   if (!CLIENT_STATUSES.has(record.status)) {
-    throw new TiboImpactError(`${fileLabel}: invalid status`, { code: "CLIENT_MALFORMED" });
+    throw new TiboRushError(`${fileLabel}: invalid status`, { code: "CLIENT_MALFORMED" });
   }
   if (record.error !== undefined && typeof record.error !== "string") {
-    throw new TiboImpactError(`${fileLabel}: error must be a string when present`, {
+    throw new TiboRushError(`${fileLabel}: error must be a string when present`, {
       code: "CLIENT_MALFORMED",
     });
   }
   if (record.routingMode !== undefined && !MODES.includes(record.routingMode)) {
-    throw new TiboImpactError(`${fileLabel}: invalid routingMode`, { code: "CLIENT_MALFORMED" });
+    throw new TiboRushError(`${fileLabel}: invalid routingMode`, { code: "CLIENT_MALFORMED" });
   }
   for (const key of ["routingRevision", "appliedRevision"]) {
     if (record[key] !== undefined && typeof record[key] !== "string") {
-      throw new TiboImpactError(`${fileLabel}: ${key} must be a string`, { code: "CLIENT_MALFORMED" });
+      throw new TiboRushError(`${fileLabel}: ${key} must be a string`, { code: "CLIENT_MALFORMED" });
     }
   }
   if (record.host !== undefined && record.host !== "omp" && record.host !== "pi") {
-    throw new TiboImpactError(`${fileLabel}: host must be omp or pi`, { code: "CLIENT_MALFORMED" });
+    throw new TiboRushError(`${fileLabel}: host must be omp or pi`, { code: "CLIENT_MALFORMED" });
   }
   if (record.capabilities !== undefined &&
       (!isRecord(record.capabilities) || typeof record.capabilities.routing !== "boolean" ||
        typeof record.capabilities.priority !== "boolean" ||
        Object.keys(record.capabilities).some(key => key !== "routing" && key !== "priority"))) {
-    throw new TiboImpactError(`${fileLabel}: capabilities must contain routing and priority booleans`, { code: "CLIENT_MALFORMED" });
+    throw new TiboRushError(`${fileLabel}: capabilities must contain routing and priority booleans`, { code: "CLIENT_MALFORMED" });
   }
   if (!isIsoDateString(record.updatedAt)) {
-    throw new TiboImpactError(`${fileLabel}: updatedAt must be a valid ISO-8601 string`, {
+    throw new TiboRushError(`${fileLabel}: updatedAt must be a valid ISO-8601 string`, {
       code: "CLIENT_MALFORMED",
     });
   }
@@ -213,11 +213,11 @@ export async function readState(home = getHome()) {
     try {
       return parseRequestedState(JSON.parse(raw));
     } catch (err) {
-      if (err instanceof TiboImpactError) {
+      if (err instanceof TiboRushError) {
         throw err;
       }
       if (err instanceof SyntaxError) {
-        throw new TiboImpactError("state.json: invalid JSON", { code: "STATE_MALFORMED" });
+        throw new TiboRushError("state.json: invalid JSON", { code: "STATE_MALFORMED" });
       }
       throw err;
     }
@@ -240,7 +240,7 @@ export async function readState(home = getHome()) {
  */
 export async function setMode(mode, home = getHome()) {
   if (!MODES.includes(mode)) {
-    throw new TiboImpactError(`Unknown mode: ${mode}`, { code: "INVALID_MODE" });
+    throw new TiboRushError(`Unknown mode: ${mode}`, { code: "INVALID_MODE" });
   }
   const resolvedHome = path.resolve(home);
   await policyFor(mode, resolvedHome);
@@ -275,7 +275,7 @@ const MODEL_ID = /^[^\s:@]+(?:\/[^\s:@]+)*$/;
  * @returns {never}
  */
 function invalidPolicy(label, message) {
-  throw new TiboImpactError(`${label}: ${message}. Fix policies.json and reissue the mode; use off to restore.`, {
+  throw new TiboRushError(`${label}: ${message}. Fix policies.json and reissue the mode; use off to restore.`, {
     code: "POLICY_MALFORMED",
   });
 }
@@ -332,7 +332,7 @@ function validateModelSelector(value, label) {
 /**
  * @param {unknown} value
  * @param {string} label
- * @returns {import("./types.ts").ImpactPolicy}
+ * @returns {import("./types.ts").RushPolicy}
  */
 function parsePolicy(value, label) {
   const policy = policyObject(value, ["main", "roles", "agentModels", "tier", "agentTiers", "instruction"], label);
@@ -364,17 +364,17 @@ function parsePolicy(value, label) {
     }
   }
   if (typeof policy.instruction !== "string" || !policy.instruction.trim()) invalidPolicy(`${label}.instruction`, "must be a non-empty string");
-  return /** @type {import("./types.ts").ImpactPolicy} */ (/** @type {unknown} */ (policy));
+  return /** @type {import("./types.ts").RushPolicy} */ (/** @type {unknown} */ (policy));
 }
 
 /**
  * Load a complete policy document. OFF deliberately does not read policy files.
  * @param {string} mode
  * @param {string} [home]
- * @returns {Promise<import("./types.ts").ImpactPolicy | null>}
+ * @returns {Promise<import("./types.ts").RushPolicy | null>}
  */
 export async function policyFor(mode, home = getHome()) {
-  if (!MODES.includes(mode)) throw new TiboImpactError(`Unknown mode: ${mode}`, { code: "INVALID_MODE" });
+  if (!MODES.includes(mode)) throw new TiboRushError(`Unknown mode: ${mode}`, { code: "INVALID_MODE" });
   if (mode === "off") return null;
   let source = path.join(home, "policies.json");
   let text;
@@ -382,13 +382,13 @@ export async function policyFor(mode, home = getHome()) {
     text = await fs.readFile(source, "utf8");
   } catch (error) {
     if (!(error && typeof error === "object" && "code" in error && error.code === "ENOENT")) {
-      throw new TiboImpactError(`Cannot read ${source}: ${error instanceof Error ? error.message : String(error)}`, { code: "POLICY_READ" });
+      throw new TiboRushError(`Cannot read ${source}: ${error instanceof Error ? error.message : String(error)}`, { code: "POLICY_READ" });
     }
     source = BUNDLED_POLICIES;
     try {
       text = await fs.readFile(source, "utf8");
     } catch (error) {
-      throw new TiboImpactError(`Cannot read bundled policies ${source}: ${error instanceof Error ? error.message : String(error)}`, { code: "POLICY_READ" });
+      throw new TiboRushError(`Cannot read bundled policies ${source}: ${error instanceof Error ? error.message : String(error)}`, { code: "POLICY_READ" });
     }
   }
   let raw;
@@ -397,7 +397,7 @@ export async function policyFor(mode, home = getHome()) {
   const document = policyObject(raw, ["version", "modes"], source);
   if (document.version !== 1) invalidPolicy(`${source}.version`, "must be 1");
   const modes = policyObject(document.modes, ["regular", "fast", "extreme"], `${source}.modes`);
-  /** @type {Record<string, import("./types.ts").ImpactPolicy>} */
+  /** @type {Record<string, import("./types.ts").RushPolicy>} */
   const policies = {};
   for (const name of ["regular", "fast", "extreme"]) policies[name] = parsePolicy(modes[name], `${source}.modes.${name}`);
   return policies[mode];
@@ -419,7 +419,7 @@ export async function listClients(home = getHome()) {
   }
 
   const now = Date.now();
-  /** @type {Array<import("./types.ts").ImpactClient>} */
+  /** @type {Array<import("./types.ts").RushClient>} */
   const live = [];
 
   for (const name of names) {
@@ -436,7 +436,7 @@ export async function listClients(home = getHome()) {
         continue;
       }
       if (err instanceof SyntaxError) {
-        throw new TiboImpactError(`${name}: invalid JSON`, { code: "CLIENT_MALFORMED" });
+        throw new TiboRushError(`${name}: invalid JSON`, { code: "CLIENT_MALFORMED" });
       }
       throw err;
     }

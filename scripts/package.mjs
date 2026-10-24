@@ -10,11 +10,11 @@ const exec = promisify(execFile);
 const root = fileURLToPath(new URL("../", import.meta.url));
 const manifest = JSON.parse(await fs.readFile(path.join(root, "package.json"), "utf8"));
 const output = path.join(root, "dist");
-const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "tibo-impact-pack-"));
+const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "tibo-rush-pack-"));
 try {
   await fs.mkdir(output, { recursive: true });
   for (const host of ["omp", "pi"]) {
-    const name = `tibo-impact-${host}`;
+    const name = `tibo-rush-${host}`;
     const staging = path.join(temporary, name);
     await fs.mkdir(staging);
     for (const relative of ["src/core", "src/cli", `src/hosts/${name}`, "bin", "presets", "README.md", "LICENSE"]) {
@@ -24,7 +24,7 @@ try {
     const packaged = {
       ...metadata,
       name,
-      keywords: host === "pi" ? ["pi-package", "tibo-impact"] : ["omp", "tibo-impact"],
+      keywords: host === "pi" ? ["pi-package", "tibo-rush"] : ["omp", "tibo-rush"],
       [host]: host === "pi" ? pi : omp,
     };
     await fs.writeFile(path.join(staging, "package.json"), `${JSON.stringify(packaged, null, 2)}\n`);

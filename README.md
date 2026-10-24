@@ -4,7 +4,7 @@ English | [中文](README.zh-CN.md)
 
 **One-switch model and tier sprint modes for Oh My Pi and Pi.**
 
-Tibo Rush lets you flip every connected agent session into a faster or heavier model setup with one command, then flip them all back. Each session remembers how it was configured before, so `off` puts it back the way it was rather than forcing everything to a single default.
+With one command, Tibo Rush switches every connected agent session to a different model setup, and one more command switches them all back. Each session remembers its previous configuration, so `off` restores it instead of resetting everything to a single default.
 
 ```text
 /tibo-rush regular
@@ -40,7 +40,7 @@ Tibo Rush lets you flip every connected agent session into a faster or heavier m
 
 ## Installation
 
-Currently adapted to the Oh My Pi 18.12.5 / 18.12.6 and Pi 1.4.0 host APIs. Host acceptance has only been run on macOS, so Windows and Linux host behaviour is not verified. The standalone CLI and dev tools need Bun 1.3 or newer. Pi 1.4.0 needs Node 22.19 or newer.
+Currently adapted to the Oh My Pi 18.12.5 / 18.12.6 and Pi 1.4.0 host APIs. Host acceptance has only been run on macOS, so Windows and Linux host behavior is not verified. The standalone CLI and dev tools need Bun 1.3 or newer. Pi 1.4.0 needs Node 22.19 or newer.
 
 ### Oh My Pi
 
@@ -59,7 +59,7 @@ omp plugin marketplace add happyfeetw/tibo-rush
 omp plugin install tibo-rush-omp@tibo-rush
 ```
 
-Every session that was already open needs one `/restart` to load the extension. After that, switching modes does not need a restart. Marketplace installs do not put the standalone CLI on your `PATH`.
+Sessions that were already open need one `/restart` to load the extension. After that, switching modes does not require a restart. Marketplace installs do not put the standalone CLI on your `PATH`.
 
 ### Pi
 
@@ -91,7 +91,7 @@ git checkout v0.2.0
 bun bin/tibo-rush.mjs status
 ```
 
-To get a short command, run `bun link` in that directory and make sure Bun's global bin directory is on your `PATH`. The only CLI name is `tibo-rush`. `bun link` does not register anything with OMP or Pi.
+For a shorter command, run `bun link` in that directory and make sure Bun's global bin directory is on your `PATH`. The only CLI name is `tibo-rush`. `bun link` does not register anything with OMP or Pi.
 
 ## Using it
 
@@ -116,14 +116,14 @@ The example preset (`presets/tibo-rush.json`) defines these modes:
 | `extreme` | Astra, medium thinking | Sol, high | Priority / Fast |
 | `off` | Restores each session's original state | Restores its original routing | Restores its original tier |
 
-The preset also routes review to Astra high, hard problems to Astra xhigh, frontend work to Gemini, and light tasks to Luna. These are the author's model IDs. **They are not available on every account.** Check the IDs against your own catalogue and edit the preset before you use it. Tibo Rush does not install agent definitions, create subscriptions, read another host's login files, or redeem account benefits.
+The preset also routes review to Astra high, hard problems to Astra xhigh, frontend work to Gemini, and light tasks to Luna. These are the author's model IDs. **They are not available on every account.** Check the IDs against your own account's model list and edit the preset before using it. Tibo Rush does not install agent definitions, create subscriptions, read another host's login files, or redeem account benefits.
 
 ### What each host actually changes
 
 The commands are the same, but the hosts expose different controls, and Tibo Rush does not pretend otherwise.
 
 - **OMP** applies the main model, thinking level and service tier. It also sets OMP's own role and sub-agent routing.
-- **Pi** applies the main model and thinking. For the native ChatGPT Codex endpoint, it also sets `service_tier` through `before_provider_request`, and leaves other APIs' requests alone. Pi has no equivalent of OMP's role routing, so Tibo Rush does not claim to set coding, review or frontend sub-agent models on Pi. The status output records the host and its capabilities. The hook was checked against a real Pi install with a synthetic provider payload. Server acceptance and actual speed were not tested against OpenAI.
+- **Pi** applies the main model and thinking. For the native ChatGPT Codex endpoint, it also sets `service_tier` through `before_provider_request`, and leaves other APIs' requests alone. Pi has no equivalent of OMP's role routing, so Tibo Rush does not claim to set coding, review or frontend sub-agent models on Pi. The status output records the host and its capabilities. We checked the hook on a real Pi install using a synthetic provider payload. We have not tested server acceptance or actual speed against OpenAI.
 - `priority` availability and billing are decided by the provider. Policy validation rejects `ultrafast`. A sub-agent can only use `priority` if its model is explicitly an OpenAI or Codex model.
 - Tibo Rush does not rewrite your host's existing fallback chains, review gates, search provider order, or third-party sub-agent extensions. If a host falls back to another provider, the host decides the actual routing and speed. Review your fallback config yourself.
 
@@ -131,7 +131,7 @@ The commands are the same, but the hosts expose different controls, and Tibo Rus
 
 The default shared state directory is **`~/.tibo-rush`**. Override it with `TIBO_RUSH_HOME`. The CLI and the host process must use the same directory. OMP and Pi sessions that share a directory receive the same requests. Use a separate directory for each group that should be isolated. This does not sync across machines.
 
-To customise the policy:
+To customize the policy:
 
 ```sh
 mkdir -p ~/.tibo-rush

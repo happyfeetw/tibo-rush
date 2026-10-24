@@ -32,7 +32,7 @@ Tibo Rush lets you flip every connected agent session into a faster or heavier m
 
 ## Installation
 
-Tested against Oh My Pi 18.12.5 / 18.12.6 and Pi 1.4.0. Host acceptance has only been run on macOS, so Windows and Linux host behaviour is not verified. The standalone CLI and dev tools need Bun 1.3 or newer. Pi 1.4.0 needs Node 22.19 or newer.
+Currently adapted to the Oh My Pi 18.12.5 / 18.12.6 and Pi 1.4.0 host APIs. Host acceptance has only been run on macOS, so Windows and Linux host behaviour is not verified. The standalone CLI and dev tools need Bun 1.3 or newer. Pi 1.4.0 needs Node 22.19 or newer.
 
 ### Oh My Pi
 

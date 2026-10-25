@@ -6,7 +6,7 @@ Codex 订阅额度按周期重置，没用完的部分不会累积到下个周�
 
 **Oh My Pi**
 
-![Tibo Rush 在 Oh My Pi 中](assets/tibo-rush-omp-demo.gif)
+![Tibo Rush 在 Oh My Pi 中](assets/tibo-rush-omp-switch.gif)
 
 *在一个临时演示项目中使用真实的 Codex 订阅录制。`fast` 把会话从 GPT-6.1 Sol（high）切到 GPT-6 Astra（medium），`off` 再切回来。全程没有发送模型请求。*
 

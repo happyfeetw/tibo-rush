@@ -18,11 +18,13 @@ Codex subscription quota resets on a schedule, and whatever you don't use doesn'
 
 ![Tibo Rush in Oh My Pi](assets/tibo-rush-omp-demo.gif)
 
+*Recorded in a throwaway demo project on a real Codex subscription. `fast` moves the session from GPT-6.1 Sol (high) to GPT-6 Astra (medium), and `off` puts it back. No model requests are sent.*
+
 **Pi**
 
 ![Tibo Rush in Pi](assets/tibo-rush-pi-demo.gif)
 
-*Recorded in an isolated environment with no credentials and no model requests. Without credentials the `fast` switch fails and says so instead of reporting `applied`. `off` still restores the session.*
+*Recorded with no credentials, so it shows the failure path: `fast` reports the missing credentials instead of claiming `applied`, and `off` still restores the session.*
 
 > **Community project.** Not affiliated with OpenAI, Tibo, Oh My Pi or Pi.
 > It runs inside the host process and is **not a sandbox**. Read the source before you install it.

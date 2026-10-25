@@ -8,11 +8,13 @@ Codex 订阅额度按周期重置，没用完的部分不会累积到下个周�
 
 ![Tibo Rush 在 Oh My Pi 中](assets/tibo-rush-omp-demo.gif)
 
+*在一个临时演示项目中使用真实的 Codex 订阅录制。`fast` 把会话从 GPT-6.1 Sol（high）切到 GPT-6 Astra（medium），`off` 再切回来。全程没有发送模型请求。*
+
 **Pi**
 
 ![Tibo Rush 在 Pi 中](assets/tibo-rush-pi-demo.gif)
 
-*录制于隔离环境，未配置凭据，未发送模型请求。没有凭据时，`fast` 切换会失败并明确报告，不会显示 `applied`；`off` 仍可恢复会话。*
+*未配置凭据时录制，展示的是失败路径：`fast` 会明确报告缺少凭据，不会显示 `applied`；`off` 仍可恢复会话。*
 
 **Tibo Rush 是主体，宿主是平级适配项目。** 在任意已接入会话发出同一条命令，切换共享状态目录下的会话；关闭后恢复每个会话入档前的状态。
 

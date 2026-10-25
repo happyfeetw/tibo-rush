@@ -8,6 +8,7 @@ import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { setTimeout as delay } from "node:timers/promises";
 import { atomicJson, listClients, policyFor, setMode } from "../src/core/lib.mjs";
+import { offlineProviderCredentials } from "../tests/fixtures/offline-provider.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const timeout = Number(process.env.PI_SMOKE_TIMEOUT_MS || 20_000);
@@ -130,7 +131,7 @@ import { createAssistantMessageEventStream } from "@earendil-works/pi-ai";
 const log = value => fs.appendFile(process.env.TIBO_PI_FIXTURE_JOURNAL, JSON.stringify(value) + "\\n");
 export default function(pi) {
   pi.registerProvider("openai-codex", {
-    name: "Offline smoke fixture", baseUrl: "https://chatgpt.com/backend-api", apiKey: "synthetic-not-a-credential",
+    name: "Offline smoke fixture", baseUrl: "https://chatgpt.com/backend-api", apiKey: ${JSON.stringify(offlineProviderCredentials.apiKey)},
     api: "openai-codex-responses",
     models: ${JSON.stringify(modelIds)}.map(id => ({ id, name: id, reasoning: true,
       thinkingLevelMap: { minimal: "minimal", low: "low", medium: "medium", high: "high", xhigh: "xhigh" },

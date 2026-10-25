@@ -2,9 +2,9 @@
 
 English | [中文](README.zh-CN.md)
 
-**One-switch model and tier sprint modes for Oh My Pi and Pi.**
+**One-switch subscription quota sprint modes for Oh My Pi and Pi.**
 
-With one command, Tibo Rush switches every connected agent session to a different model setup, and one more command switches them all back. Each session remembers its previous configuration, so `off` restores it instead of resetting everything to a single default.
+Codex subscription quota resets on a schedule, and whatever you don't use doesn't carry over. With one command, Tibo Rush flips every connected session into a sprint mode that spends quota faster. When you're done, `off` returns each session to the setup it had before, instead of resetting everything to a single default.
 
 ```text
 /tibo-rush regular
@@ -26,7 +26,7 @@ With one command, Tibo Rush switches every connected agent session to a differen
 
 > **Community project.** Not affiliated with OpenAI, Tibo, Oh My Pi or Pi.
 > It runs inside the host process and is **not a sandbox**. Read the source before you install it.
-> It does not promise faster responses, more quota, or model availability.
+> It doesn't read your quota or predict when it resets, so you decide when to sprint. It doesn't guarantee faster responses, quota gains, or model availability.
 
 ## Contents
 
@@ -106,6 +106,8 @@ The same commands work in both hosts:
 ```
 
 From a terminal, use `tibo-rush <mode>`, `tibo-rush status`, or `tibo-rush status --json`.
+
+`regular` is an everyday setup. `fast` and `extreme` are the sprint modes: `fast` moves the main model to the preset's sprint setup, and `extreme` adds the priority (Fast) service tier on top. How priority requests count against your quota is up to the provider.
 
 The example preset (`presets/tibo-rush.json`) defines these modes:
 

@@ -16,7 +16,7 @@ Codex subscription quota resets on a schedule, and whatever you don't use doesn'
 
 **Oh My Pi**
 
-![Tibo Rush in Oh My Pi](assets/tibo-rush-omp-demo.gif)
+![Tibo Rush in Oh My Pi](assets/tibo-rush-omp-switch.gif)
 
 *Recorded in a throwaway demo project on a real Codex subscription. `fast` moves the session from GPT-6.1 Sol (high) to GPT-6 Astra (medium), and `off` puts it back. No model requests are sent.*
 

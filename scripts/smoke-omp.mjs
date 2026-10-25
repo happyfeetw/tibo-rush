@@ -8,6 +8,7 @@ import { spawn } from "node:child_process";
 import { createInterface } from "node:readline";
 import { createHash, randomUUID } from "node:crypto";
 import { listClients, policyFor, readState, setMode } from "../src/core/lib.mjs";
+import { offlineProviderCredentials } from "../tests/fixtures/offline-provider.mjs";
 
 // Real OMP processes, real settings registry, real extension package discovery.
 // Never submits a model prompt: every prompt is registration-checked local command.
@@ -250,7 +251,7 @@ export default function probe(pi) {
   };
   const transitions = [];
   pi.registerProvider("rush-smoke", {
-    baseUrl: "http://127.0.0.1:9", apiKey: "synthetic-not-a-credential", api: "openai-completions",
+    baseUrl: "http://127.0.0.1:9", apiKey: ${JSON.stringify(offlineProviderCredentials.apiKey)}, api: "openai-completions",
     models: [{ id: "plain", name: "Non-reasoning offline fixture", reasoning: false, input: ["text"],
       cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }, contextWindow: 8192, maxTokens: 1024 }],
   });
@@ -481,7 +482,7 @@ async function main() {
     PI_CONFIG_DIR: ".omp", PI_CODING_AGENT_DIR: agent,
     PI_NATIVES_DIR: path.join(temporary, "natives"),
     TIBO_RUSH_HOME: rush,
-    OPENAI_CODEX_OAUTH_TOKEN: "rush-smoke-local-only-not-a-real-token",
+    OPENAI_CODEX_OAUTH_TOKEN: offlineProviderCredentials.oauthToken,
     PI_NO_TITLE: "1", PI_NO_PTY: "1", OMP_SKIP_SETUP: "1", PI_AUTO_QA: "0", OTEL_SDK_DISABLED: "true",
     RUSH_SMOKE_ROOT: temporary, RUSH_SMOKE_SEED: JSON.stringify(seed),
   };

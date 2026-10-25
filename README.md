@@ -223,6 +223,8 @@ bun run pack:hosts
 
 Tests use an isolated state directory. The real-host smoke tests use temporary config and sessions, and they make no network model calls. The Pi lifecycle can be tested with local synthetic responses, but that says nothing about actual provider speed. A missing host or model capability does not count as a pass. The offline checks in GitHub CI do not replace real host acceptance.
 
+Synthetic test credentials live in `tests/fixtures/offline-provider.mjs`. See [SECURITY.md](SECURITY.md) for how to report a vulnerability.
+
 `pack:hosts` writes `dist/tibo-rush-omp-<version>.tgz` and `dist/tibo-rush-pi-<version>.tgz`. These only contain whitelisted source and no runtime state. Before a release, you also need to verify marketplace and package installs, and check that new sessions load the extension.
 
 ## License and references

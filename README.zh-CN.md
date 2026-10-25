@@ -193,6 +193,8 @@ bun run pack:hosts
 
 测试隔离状态目录。真实宿主 smoke 使用临时配置与会话，不调用网络模型；Pi 可用本地合成响应测试生命周期，不代表供应商实际速度验证。缺少宿主或模型能力不算验证通过。GitHub CI 的离线检查不能替代实际宿主验收。
 
+测试用的合成凭据位于 `tests/fixtures/offline-provider.mjs`。漏洞报告方式见 [SECURITY.md](SECURITY.md)。
+
 `pack:hosts` 输出 `dist/tibo-rush-omp-<version>.tgz` 与 `dist/tibo-rush-pi-<version>.tgz`，只含分发白名单源码，不含运行状态。发布前还需隔离验证市场/包安装与新会话加载。
 
 ## 许可与资料

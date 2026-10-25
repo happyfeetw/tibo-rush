@@ -1,6 +1,6 @@
 {
   "name": "tibo-rush",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "One-switch model and service-tier modes for Oh My Pi and Pi",
   "type": "module",
   "license": "MIT",

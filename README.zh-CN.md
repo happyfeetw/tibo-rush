@@ -51,12 +51,12 @@ omp plugin install tibo-rush-omp@tibo-rush
 Git 安装使用主仓库的 Pi 清单，只加载 Pi 适配器，不加载 OMP：
 
 ```sh
-pi install git:github.com/happyfeetw/tibo-rush@v0.2.0
+pi install git:github.com/happyfeetw/tibo-rush@v0.2.1
 ```
 
 在每个现有 Pi 会话执行 `/reload`，或退出并续接原会话，加载新扩展。之后命令与 OMP 完全相同。
 
-需要宿主专属分发包时，从 [Releases](https://github.com/happyfeetw/tibo-rush/releases) 下载 `tibo-rush-pi-0.2.0.tgz` 或 `tibo-rush-omp-0.2.0.tgz`，解压到固定目录，再使用 `pi install /absolute/path/to/package` 或 `omp plugin link /absolute/path/to/package`。每个分发包仅携带自身适配器和共享核心。**同一宿主只选择一种安装方式，避免重复加载。**
+需要宿主专属分发包时，从 [Releases](https://github.com/happyfeetw/tibo-rush/releases) 下载 `tibo-rush-pi-0.2.1.tgz` 或 `tibo-rush-omp-0.2.1.tgz`，解压到固定目录，再使用 `pi install /absolute/path/to/package` 或 `omp plugin link /absolute/path/to/package`。每个分发包仅携带自身适配器和共享核心。**同一宿主只选择一种安装方式，避免重复加载。**
 
 Pi gallery 的发现依赖 npm 发布的 `pi-package` 包；GitHub Release 和 Git 安装不等于已经上架该目录。
 
@@ -65,7 +65,7 @@ Pi gallery 的发现依赖 npm 发布的 `pi-package` 包；GitHub Release 和 G
 ```sh
 git clone https://github.com/happyfeetw/tibo-rush.git
 cd tibo-rush
-git checkout v0.2.0
+git checkout v0.2.1
 bun bin/tibo-rush.mjs status
 ```
 
@@ -158,7 +158,7 @@ Pi 使用 `pi remove <安装时的来源>`，再 `/reload`。终端命令是否�
 
 v0.1.0 的公开项目 / 主包是 `happyfeetw/tibo-impact` / `tibo-impact`，宿主包是 `tibo-impact-omp`、`tibo-impact-pi`；状态目录为 `~/.tibo-impact`，环境变量为 `TIBO_IMPACT_HOME`。**卸载旧版、安装或加载新版之前，必须先用旧版命令 `/tibo-impact off`（旧 CLI 为 `tibo-impact off` 或 `omp-impact off`），并确认所有相关会话恢复；离线会话也须先续接、完成恢复。** 若设置过旧环境变量，须让旧控制器和旧宿主仍指向原目录完成收尾，再停用该变量。
 
-恢复完成后，使用 `/marketplace uninstall tibo-impact-omp@tibo-impact` 卸载旧 OMP 市场包；Pi 使用 `pi remove <旧安装来源>`；独立 CLI 按原安装方式解除链接或卸载。随后按上面的 v0.2.0 安装步骤安装 Tibo Rush，并在每个会话重启或重新加载，避免新旧适配器同时运行。新版只注册 `/tibo-rush` 和 `tibo-rush`，不保留旧命令别名。
+恢复完成后，使用 `/marketplace uninstall tibo-impact-omp@tibo-impact` 卸载旧 OMP 市场包；Pi 使用 `pi remove <旧安装来源>`；独立 CLI 按原安装方式解除链接或卸载。随后按上面的 v0.2.1 安装步骤安装 Tibo Rush，并在每个会话重启或重新加载，避免新旧适配器同时运行。新版只注册 `/tibo-rush` 和 `tibo-rush`，不保留旧命令别名。
 
 更早的手工版本可能使用 `~/.omp/agent/extensions/tibo-impact.ts`、状态目录 `~/.omp/agent/tibo-impact` 和 `~/.local/bin/omp-impact` 包装器。同样必须先通过旧入口让所有旧会话 `off` 并完成恢复，再移走旧扩展入口及包装器；用 `command -v omp-impact` 检查 PATH 不再命中旧控制器。旧会话恢复前保留可用的旧控制器，不要提前删除其恢复数据。
 

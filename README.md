@@ -66,12 +66,12 @@ Sessions that were already open need one `/restart` to load the extension. After
 Install from git. This uses the main repository's Pi manifest and loads only the Pi adapter, not OMP:
 
 ```sh
-pi install git:github.com/happyfeetw/tibo-rush@v0.2.0
+pi install git:github.com/happyfeetw/tibo-rush@v0.2.1
 ```
 
 Run `/reload` in each open Pi session, or quit and resume it. The commands are the same as in OMP.
 
-If you prefer a host-specific package, download `tibo-rush-pi-0.2.0.tgz` or `tibo-rush-omp-0.2.0.tgz` from the [Releases page](https://github.com/happyfeetw/tibo-rush/releases), unpack it into a fixed directory, and install from there:
+If you prefer a host-specific package, download `tibo-rush-pi-0.2.1.tgz` or `tibo-rush-omp-0.2.1.tgz` from the [Releases page](https://github.com/happyfeetw/tibo-rush/releases), unpack it into a fixed directory, and install from there:
 
 ```sh
 pi install /absolute/path/to/package
@@ -87,7 +87,7 @@ The Pi gallery finds packages through npm, so a git install or a GitHub release 
 ```sh
 git clone https://github.com/happyfeetw/tibo-rush.git
 cd tibo-rush
-git checkout v0.2.0
+git checkout v0.2.1
 bun bin/tibo-rush.mjs status
 ```
 

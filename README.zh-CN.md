@@ -1,35 +1,56 @@
-# Tibo Rush
+<p align="center">
+  <img src="assets/tibo-rush-icon.svg" width="128" height="128" alt="Tibo Rush">
+</p>
 
-[English](README.md) | 中文
+<h1 align="center">Tibo Rush</h1>
 
-Codex 订阅额度按周期重置，没用完的部分不会累积到下个周期。Tibo Rush 让你用一条命令，把 Oh My Pi 和 Pi 的所有已接入会话切到更快消耗额度的冲刺模式；用完后执行 `off`，每个会话各自恢复原来的设置。
+<p align="center">[English](README.md) | 中文</p>
+
+**一条命令，把 Oh My Pi 和 Pi 里已接入的会话切到冲刺模式；用完 `off`，每个会话回到自己原来的设置。**
+
+Codex 订阅额度按周期重置，没用完的部分不会累积到下个周期。Tibo Rush 不读取额度，也不预测重置时间，什么时候冲刺由你决定。
+
+- 同一条 `/tibo-rush` 命令作用于共享状态目录下所有已接入会话
+- `fast` / `extreme` 是冲刺档，`regular` 是日常档；`off` 按会话恢复入档前状态
+- OMP 还会改角色与子代理路由；Pi 改主模型和思考，并对原生 Codex 请求设置 `service_tier`
+
+```text
+/tibo-rush regular
+/tibo-rush fast
+/tibo-rush extreme
+/tibo-rush off
+/tibo-rush status
+```
 
 **Oh My Pi**
 
 ![Tibo Rush 在 Oh My Pi 中](assets/tibo-rush-omp-switch.gif)
 
-*在一个临时演示项目中使用真实的 Codex 订阅录制。`fast` 把会话从 GPT-6.1 Sol（high）切到 GPT-6 Astra（medium），`off` 再切回来。全程没有发送模型请求。*
-
 **Pi**
 
 ![Tibo Rush 在 Pi 中](assets/tibo-rush-pi-switch.gif)
 
-*在 Pi 1.4.0 的隔离演示项目中使用真实的 Codex 订阅录制。`fast` 从 GPT-6.1 Sol（high）切换到 GPT-6 Astra（medium）并显示 `applied`；`off` 恢复原来的模型和思考强度。全程没有发送模型请求。*
+*演示在隔离项目中用真实 Codex 订阅录制。`fast` 从 GPT-6.1 Sol（high）切到 GPT-6 Astra（medium），`off` 再切回来。全程没有发送模型请求。*
 
-**Tibo Rush 是主体，宿主是平级适配项目。** 在任意已接入会话发出同一条命令，切换共享状态目录下的会话；关闭后恢复每个会话入档前的状态。
+> **社区项目**，与 OpenAI、Tibo、OMP 或 Pi 官方无隶属关系。
+> 扩展在宿主进程中运行，**不是沙箱插件**，安装前请审阅源码。
+> 不保证提速、额度收益或模型可用性。
 
-| 适配项目 / 分发包 | 宿主 | 会话内命令 |
-| --- | --- | --- |
-| `tibo-rush-omp` | Oh My Pi（OMP） | `/tibo-rush fast` |
-| `tibo-rush-pi` | 原版 Pi | `/tibo-rush fast` |
+## 目录
 
-社区项目，与 OpenAI、Tibo、OMP 或 Pi 官方无隶属关系。不读取额度，不预测或兑换额度重置，什么时候冲刺由你决定；不保证提速、额度收益或模型可用性。扩展在宿主进程中运行，**不是沙箱插件**，安装前请审阅源码。
+- [安装](#安装)
+- [使用](#使用)
+- [配置](#配置)
+- [状态与恢复](#状态与恢复)
+- [卸载](#卸载)
+- [从旧版升级](#从旧版升级)
+- [开发](#开发)
 
 ## 安装
 
-当前适配的宿主 API：OMP 18.12.5 / 18.12.6、Pi 1.4.0。宿主验收环境为 macOS；不据此宣称 Windows、Linux 完整宿主行为已验证。独立 CLI 和开发工具需要 Bun >= 1.3；Pi 自身需要其支持的 Node 版本（1.4.0 要求 >=22.19）。
+Oh My Pi 安装 `tibo-rush-omp`，Pi 安装 `tibo-rush-pi`。两个宿主的会话内命令相同。
 
-### OMP：`tibo-rush-omp`
+### Oh My Pi
 
 在 OMP 会话中：
 
@@ -48,21 +69,33 @@ omp plugin install tibo-rush-omp@tibo-rush
 
 每个现有 OMP 会话首次需各 `/restart`。以后切档无需重启。市场安装不保证将独立 CLI 加入 PATH。
 
-### Pi：`tibo-rush-pi`
+### Pi
 
-Git 安装使用主仓库的 Pi 清单，只加载 Pi 适配器，不加载 OMP：
+Git 安装使用主仓库的 Pi 清单，只加载 Pi 适配器：
 
 ```sh
 pi install git:github.com/happyfeetw/tibo-rush@v0.2.1
 ```
 
-在每个现有 Pi 会话执行 `/reload`，或退出并续接原会话，加载新扩展。之后命令与 OMP 完全相同。
+在每个现有 Pi 会话执行 `/reload`，或退出并续接原会话。之后命令与 OMP 完全相同。
 
-需要宿主专属分发包时，从 [Releases](https://github.com/happyfeetw/tibo-rush/releases) 下载 `tibo-rush-pi-0.2.1.tgz` 或 `tibo-rush-omp-0.2.1.tgz`，解压到固定目录，再使用 `pi install /absolute/path/to/package` 或 `omp plugin link /absolute/path/to/package`。每个分发包仅携带自身适配器和共享核心。**同一宿主只选择一种安装方式，避免重复加载。**
+当前适配的宿主 API：OMP 18.12.5 / 18.12.6、Pi 1.4.0。宿主验收环境为 macOS；Windows 与 Linux 上的宿主行为尚未按同样标准验收。独立 CLI 和开发工具需要 Bun >= 1.3；Pi 1.4.0 需要 Node >= 22.19。
+
+<details>
+<summary>分发包、独立 CLI 和其他安装方式</summary>
+
+需要宿主专属分发包时，从 [Releases](https://github.com/happyfeetw/tibo-rush/releases) 下载 `tibo-rush-pi-0.2.1.tgz` 或 `tibo-rush-omp-0.2.1.tgz`，解压到固定目录，再使用：
+
+```sh
+pi install /absolute/path/to/package
+omp plugin link /absolute/path/to/package
+```
+
+每个分发包仅携带自身适配器和共享核心。**同一宿主只选择一种安装方式，避免重复加载。**
 
 Pi gallery 的发现依赖 npm 发布的 `pi-package` 包；GitHub Release 和 Git 安装不等于已经上架该目录。
 
-### 独立终端 CLI（可选）
+独立终端 CLI（可选）：
 
 ```sh
 git clone https://github.com/happyfeetw/tibo-rush.git
@@ -73,37 +106,35 @@ bun bin/tibo-rush.mjs status
 
 需要短命令时，在该目录执行 `bun link`，确保 Bun 全局 bin 目录在 PATH 中。唯一 CLI 命令名是 `tibo-rush`。`bun link` 本身不向 OMP 或 Pi 注册扩展。
 
-## 一致的使用方式
+</details>
 
-两个宿主都使用：
+## 使用
 
-```text
-/tibo-rush regular
-/tibo-rush fast
-/tibo-rush extreme
-/tibo-rush off
-/tibo-rush status
-```
+两个宿主都使用上面的 `/tibo-rush <mode>`。终端使用 `tibo-rush <mode>`、`tibo-rush status` 或 `tibo-rush status --json`。
 
-终端使用 `tibo-rush <mode>`、`tibo-rush status` 或 `tibo-rush status --json`。
+`regular` 是日常设置。`fast` 和 `extreme` 是冲刺档：`fast` 把主模型切到预设的冲刺配置，`extreme` 再叠上 priority（Fast）速度档。priority 如何计入额度由供应商决定。
 
-| 预设 | 主模型 | OMP 普通编码 | 请求速度档 |
+示例预设（[`presets/tibo-rush.json`](presets/tibo-rush.json)）定义了这些模式：
+
+| 模式 | 主模型 | OMP 日常编码 | 请求速度档 |
 | --- | --- | --- | --- |
-| regular | Sol high | Sol high | Standard |
-| fast | Astra medium | Sol high | Standard |
-| extreme | Astra medium | Sol high | priority / Fast |
-| off | 恢复各会话原状态 | 恢复原路由 | 恢复原状态 |
+| `regular` | Sol high | Sol high | Standard |
+| `fast` | Astra medium | Sol high | Standard |
+| `extreme` | Astra medium | Sol high | priority / Fast |
+| `off` | 恢复各会话原状态 | 恢复原路由 | 恢复原状态 |
 
 示例预设的 OMP 分工还包括 Astra high 审核、Astra xhigh 攻坚、Gemini 前端和 Luna 轻量角色。这是作者模型目录的示例，**不是所有账号都拥有的通用模型 ID**。先检查并按自己的宿主目录修改预设。扩展不安装代理定义、创建订阅、读取其他宿主的登录文件或兑换账号权益。
 
-### 相同命令，不伪造相同能力
+### 各宿主实际会改什么
+
+命令相同，宿主暴露的控制面不同，状态里会记下宿主与能力标记。
 
 - **OMP**：应用主模型、思考、服务速度档，以及 OMP 原生的角色与子代理路由设置。
-- **Pi**：应用主模型和思考；针对原生 ChatGPT Codex endpoint，通过 `before_provider_request` 设置 `service_tier`，不改写其他 API 的请求。它没有同等的 OMP 角色路由接口，不会假装设置了编码、审核或前端子代理模型。状态包含宿主与能力标记。已用真实 Pi 的合成 provider payload 验证钩子，未向 OpenAI 发请求验证服务端接受情况或速度。
+- **Pi**：应用主模型和思考；针对原生 ChatGPT Codex endpoint，通过 `before_provider_request` 设置 `service_tier`，不改写其他 API 的请求。Pi 没有同等的 OMP 角色路由接口，状态不会把编码、审核或前端子代理模型写成已设置。已用真实 Pi 的合成 provider payload 验证钩子，未向 OpenAI 发请求验证服务端接受情况或速度。
 - `priority` 的实际可用性与额度计费由供应商决定。策略校验拒绝 Ultrafast；代理 priority 只允许指向显式声明的 OpenAI / Codex 模型，非 OpenAI 或未声明目标会被拒绝。
 - 不改写宿主已有 fallback chains、审核门槛、搜索 provider 顺序或第三方子代理扩展配置。若宿主随后通过回退链切换 provider，实际代理路由与速度语义仍由宿主决定，需自行审查回退配置。
 
-## 配置与共享范围
+## 配置
 
 默认共享状态目录是 **`~/.tibo-rush`**。用 `TIBO_RUSH_HOME` 覆盖；CLI 与目标宿主进程必须使用同一目录。相同目录下的 OMP 和 Pi 会话会同时接收请求；需要分组隔离就给进程设置不同目录。这不是跨机器同步。
 
@@ -116,7 +147,7 @@ cp presets/tibo-rush.json ~/.tibo-rush/policies.json
 
 编辑完整 JSON 的 `modes.regular`、`modes.fast`、`modes.extreme`：
 
-- `main`：`provider`、`id`、`thinking`。当前仅支持 `openai-codex` 主模型；不暗示支持其他供应商的等价速度控制。
+- `main`：`provider`、`id`、`thinking`。当前仅支持 `openai-codex` 主模型，其他供应商没有对等的速度档控制。
 - `roles`：OMP 模型角色映射。
 - `agentModels`：OMP 代理名到模型或 `@角色` 的映射，引用角色必须在策略里声明。代理定义本身须已存在。
 - `tier`：`default` 或 `priority`。
@@ -125,16 +156,29 @@ cp presets/tibo-rush.json ~/.tibo-rush/policies.json
 
 修改后重新执行一次目标模式命令，以新 revision 通知各会话。无效策略不写入新活动请求。**即使策略文件损坏，`off` 仍可恢复**。模型或认证不可用时显示错误，不自动开通其他渠道。
 
-## 状态、忙碌会话和恢复
+## 状态与恢复
+
+模式只有在原状态已经落盘、切换已经生效后，才会报告为 `applied`。
 
 - 请求不会中断当前模型调用；忙碌主会话显示 `pending`，空闲后再切换主模型与速度。OMP 后续子代理路由可先更新，已运行子代理不重启。
 - `status` 仅统计有有效心跳的已接入会话。零客户端不是全部生效；`pending` 不是已生效；出错不会报告 `applied`。
 - 使用会话内覆盖，不改写用户持久角色配置。`off` 恢复每个会话进入活动模式前的状态，而不是把所有会话统一改回 Sol。
 - 活动期退出进程保留恢复基线。即使离线期间切到 `off`，续接原会话仍会尝试恢复。
+- 先 `off`、确认相关会话恢复，再卸载。离线会话先续接完成恢复；不要提前删除恢复基线。
+
+<details>
+<summary>OMP 分叉、新建会话和超时</summary>
+
 - OMP 通过公开 SDK 注册表定位当前会话，并校验会话 ID 与 manager 身份，再读取配置级思考选择和确认恢复记录落盘。身份不匹配或 SDK 能力缺失时拒绝修改；落盘失败保留恢复基线并报告错误，不将内存恢复冒充持久化成功。
 - OMP 活动期分支/派生会话通过宿主日志里的隐藏自包含交接记录承接原基线，随后写共享状态目录；不把已经切过的模型当作原始状态。交接前使用 `handoffs/` 下的临时令牌记录及源日志意图保护歧义路径；若两份交接存储都失败，报告恢复受阻，不猜测父会话当前基线。日志记录是非上下文元数据，不发送给模型，但包含恢复配置，仍应保密。
 - OMP 活动期创建无父会话的新会话时，先在空闲边界恢复原状态，避免新会话继承没有恢复依据的活动模型；忙碌时会取消该次新建并提示稍后重试。若其他扩展随后否决新建，原会话仍保持接入并重新应用请求模式。
 - OMP 的异步切换准备若超过宿主超时，独立同步门禁会取消本次提交；原生模型 setter 若仍未结束，后续会话切换及模式修改继续等待，`off` 也保持 `pending`，直到该操作安全结束，不启动另一轮修改去竞争。
+
+</details>
+
+<details>
+<summary>验证范围、漂移和隐私</summary>
+
 - 当前验证范围是 OMP 标准 CLI 的本地文件会话及 `--no-session`；SDK 注入的远端会话存储未验证。持久会话可能因恢复确认而提前创建日志文件；`--no-session` 仅恢复内存状态。
 - 持久化确认采用宿主 flush 语义，覆盖已验证的软件崩溃恢复，不额外承诺断电级 fsync 保证。恢复元数据被人为删除后也不能保证自动恢复。
 - 在活动模式中通过宿主命令手动改模型、思考或速度，会报告策略漂移，不强行覆盖用户新选择。重新发目标模式可再次应用；`off` 仍恢复原基线。
@@ -142,7 +186,9 @@ cp presets/tibo-rush.json ~/.tibo-rush/policies.json
 - 状态目录中的 `state.json`、`clients/`、`baselines/`、`handoffs/` 包含会话 ID、工作目录和恢复配置，**不得公开上传**。扩展本身不做遥测或发起模型请求。
 - 命名 profile、`--no-extensions` 等宿主加载选项可能影响接入；必须实际加载适配器才受控制。
 
-### 卸载
+</details>
+
+## 卸载
 
 **先 `off`，确认相关会话恢复，再卸载。** 离线会话先续接完成恢复；不要提前删除恢复基线。
 
@@ -156,7 +202,12 @@ OMP 市场卸载：
 
 Pi 使用 `pi remove <安装时的来源>`，再 `/reload`。终端命令是否保留取决于独立 CLI 的安装方式。
 
-### 从 v0.1.0 或旧手工安装升级
+## 从旧版升级
+
+v0.1.0 的公开项目是 `happyfeetw/tibo-impact`。**卸载旧版、安装或加载新版之前，必须先用旧版命令 `/tibo-impact off`，并确认所有相关会话恢复。** 新版使用全新的 `~/.tibo-rush` 状态目录，不会自动导入旧状态。不要把旧目录复制到新目录。
+
+<details>
+<summary>v0.1.0 和市场、手工安装的完整步骤</summary>
 
 v0.1.0 的公开项目 / 主包是 `happyfeetw/tibo-impact` / `tibo-impact`，宿主包是 `tibo-impact-omp`、`tibo-impact-pi`；状态目录为 `~/.tibo-impact`，环境变量为 `TIBO_IMPACT_HOME`。**卸载旧版、安装或加载新版之前，必须先用旧版命令 `/tibo-impact off`（旧 CLI 为 `tibo-impact off` 或 `omp-impact off`），并确认所有相关会话恢复；离线会话也须先续接、完成恢复。** 若设置过旧环境变量，须让旧控制器和旧宿主仍指向原目录完成收尾，再停用该变量。
 
@@ -166,7 +217,11 @@ v0.1.0 的公开项目 / 主包是 `happyfeetw/tibo-impact` / `tibo-impact`，�
 
 新版默认使用全新的 `~/.tibo-rush` 状态目录（覆盖变量为 `TIBO_RUSH_HOME`）。**不会自动导入、移动或删除旧状态、基线或日志。不要把旧目录复制到新目录，也不要复制恢复元数据或改写日志标记字符串来冒充迁移。** 需要保留自定义策略时，只人工核对并重新配置 `policies.json` 中的模型策略，不复制 `state.json`、`clients/`、`baselines/`、`handoffs/` 或宿主日志恢复记录。
 
-## 仓库结构与开发
+</details>
+
+## 开发
+
+Tibo Rush 是主体，`tibo-rush-omp` 和 `tibo-rush-pi` 是平级适配器。
 
 ```text
 tibo-rush/

@@ -1,6 +1,10 @@
-# Tibo Rush
+<p align="center">
+  <img src="assets/tibo-rush-icon.svg" width="128" height="128" alt="Tibo Rush">
+</p>
 
-English | [中文](README.zh-CN.md)
+<h1 align="center">Tibo Rush</h1>
+
+<p align="center">English | [中文](README.zh-CN.md)</p>
 
 **One-switch subscription quota sprint modes for Oh My Pi and Pi.**
 

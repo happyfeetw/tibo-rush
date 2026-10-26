@@ -31,9 +31,13 @@ Codex 订阅额度按周期重置，没用完的部分不会留到下个周期�
 
 ![Oh My Pi 中打开档位列表、选择 fast 生效，再选择 off 恢复](assets/tibo-rush-omp-switch.gif)
 
+[下载 MP4](https://github.com/happyfeetw/tibo-rush/releases/download/v0.3.0/tibo-rush-omp-picker.mp4)
+
 **Pi**
 
 ![Pi 中通过前缀过滤选择 fast 生效，再选择 off 恢复](assets/tibo-rush-pi-switch.gif)
+
+[下载 MP4](https://github.com/happyfeetw/tibo-rush/releases/download/v0.3.0/tibo-rush-pi-picker.mp4)
 
 *在隔离项目中录制：打开五项候选，输入 `f` 过滤，接受并执行 `fast`，确认 `applied`，再用 `off` 恢复。OMP 18.12.6 从 Sol（high）切到 Astra（medium）后恢复；Pi 1.4.0 使用离线测试供应商的模型目录和合成凭据演示相同的宿主设置变化。没有发送模型请求，不据此宣称真实供应商认证或服务端 priority 已验证。*
 
@@ -56,7 +60,7 @@ Codex 订阅额度按周期重置，没用完的部分不会留到下个周期�
 
 目前已适配的宿主 API 版本为 OMP 18.12.5 / 18.12.6、Pi 1.4.0。实际宿主验证在 macOS 上完成，Windows 和 Linux 尚未经过同等验证。开发工具需要 Bun >= 1.3；Pi 1.4.0 需要 Node >= 22.19。
 
-档位列表已在 `main` 中，计划随 0.3.0 发布。下面固定到 0.2.1 的安装方式尚不包含该功能。
+档位列表从 0.3.0 开始提供。请先安装或更新扩展，再重新加载宿主。
 
 ### Oh My Pi
 
@@ -82,7 +86,7 @@ omp plugin install tibo-rush-omp@tibo-rush
 通过 Git 安装时，使用的是主仓库中的 Pi 包清单，只会加载 Pi 适配器：
 
 ```sh
-pi install git:github.com/happyfeetw/tibo-rush@v0.2.1
+pi install git:github.com/happyfeetw/tibo-rush@v0.3.0
 ```
 
 更新安装来源后，在每个已有的 Pi 会话中执行 `/reload`，或退出后续接原会话，以加载新代码。两边的模式命令相同。
@@ -90,7 +94,7 @@ pi install git:github.com/happyfeetw/tibo-rush@v0.2.1
 <details>
 <summary>宿主分发包安装</summary>
 
-如果需要单独安装宿主分发包，可以从 [Releases](https://github.com/happyfeetw/tibo-rush/releases) 下载 `tibo-rush-pi-0.2.1.tgz` 或 `tibo-rush-omp-0.2.1.tgz`，解压到固定目录，再按宿主选择下面的命令：
+如果需要单独安装宿主分发包，可以从 [Releases](https://github.com/happyfeetw/tibo-rush/releases) 下载 `tibo-rush-pi-0.3.0.tgz` 或 `tibo-rush-omp-0.3.0.tgz`，解压到固定目录，再按宿主选择下面的命令：
 
 ```sh
 pi install /absolute/path/to/package

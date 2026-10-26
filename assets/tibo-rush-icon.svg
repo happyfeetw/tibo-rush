@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Tibo Rush</title>
+  <rect width="256" height="256" rx="52" fill="#2F3438"/>
+  <g fill="#E2B03A">
+    <path d="M58 46l82 82-82 82v-36l46-46-46-46z"/>
+    <path d="M112 46l82 82-82 82v-36l46-46-46-46z"/>
+    <path d="M166 46l82 82-82 82v-36l46-46-46-46z"/>
+  </g>
+  <rect x="0" y="92" width="54" height="34" fill="#1E3A6E"/>
+  <rect x="46" y="92" width="8" height="34" fill="#121820"/>
+  <rect x="50" y="86" width="40" height="46" rx="12" fill="#E8C4A8"/>
+  <rect x="76" y="110" width="14" height="42" rx="7" fill="#E8C4A8"/>
+  <circle cx="83" cy="170" r="28" fill="#F4F4F4"/>
+  <circle cx="83" cy="170" r="24" fill="#E23B3B"/>
+  <text x="83" y="174" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" letter-spacing="0.6">RESET</text>
+</svg>

@@ -19,3 +19,7 @@ Each excerpt is trimmed to the input line and the completion list or notify that
 | `pi-enter-inserts-regular.txt` | Pi 1.4.0 | Enter on an empty-prefix list inserts `regular` and does not submit |
 
 OMP 18.12.5, paste, and history restore were not recorded. Pi isolated `fast` failed to apply for missing openai-codex credentials; do not read the Pi dumps as “applied then restored.”
+
+## Updated picker demonstrations (2026-10-27)
+
+The README GIFs now show both hosts applying `fast` and restoring with `off`. Pi uses an offline test provider, so this does not validate real provider authentication or server-side priority. See [recording provenance and results](picker-demo-2026-10-27.md). The 2026-10-26 notes above describe the original acceptance captures, not these newer demonstrations.

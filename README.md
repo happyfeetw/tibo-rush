@@ -10,6 +10,8 @@
 
 Codex subscription quota resets on a schedule, and whatever you don't use doesn't carry over. With one command, Tibo Rush flips every connected session into a sprint mode that spends quota faster. When you're done, `off` returns each session to the setup it had before, instead of resetting everything to a single default.
 
+Choose `regular`, `fast`, `extreme`, `off`, or `status` from the host's argument list instead of memorizing the command arguments. Tibo Rush is an OMP/Pi extension, not a standalone terminal command.
+
 ```text
 /tibo-rush regular
 /tibo-rush fast
@@ -20,15 +22,15 @@ Codex subscription quota resets on a schedule, and whatever you don't use doesn'
 
 **Oh My Pi**
 
-![Tibo Rush in Oh My Pi](assets/tibo-rush-omp-switch.gif)
+![Oh My Pi: choose fast from the argument list, apply it, then choose off to restore](assets/tibo-rush-omp-switch.gif)
 
-*Recorded in a throwaway demo project on a real Codex subscription. `fast` moves the session from GPT-6.1 Sol (high) to GPT-6 Astra (medium), and `off` puts it back. No model requests are sent.*
+*Oh My Pi 18.12.6 in an isolated project: open the five-option list, filter with `f`, accept and run `fast`, then run `off`. The host changes from Sol (high) to Astra (medium) and restores Sol. Synthetic credentials; no model requests.*
 
 **Pi**
 
-![Tibo Rush in Pi](assets/tibo-rush-pi-switch.gif)
+![Pi: filter the argument list to fast, apply it, then restore with off](assets/tibo-rush-pi-switch.gif)
 
-*Recorded in Pi 1.4.0 in an isolated demo project with a real Codex subscription. `fast` switches from GPT-6.1 Sol (high) to GPT-6 Astra (medium) and reports `applied`; `off` restores the original model and thinking level. No model requests are sent.*
+*Pi 1.4.0 follows the same selection, application and restoration flow. An offline test provider supplies the model catalog and synthetic credentials; the recording demonstrates host settings, not provider authentication or server-side priority.*
 
 > **Community project.** Not affiliated with OpenAI, Tibo, Oh My Pi or Pi.
 > It runs inside the host process and is **not a sandbox**. Read the source before you install it.
@@ -45,7 +47,9 @@ Codex subscription quota resets on a schedule, and whatever you don't use doesn'
 
 ## Installation
 
-Currently adapted to the Oh My Pi 18.12.5 / 18.12.6 and Pi 1.4.0 host APIs. Host acceptance has only been run on macOS, so Windows and Linux host behavior is not verified. The standalone CLI and dev tools need Bun 1.3 or newer. Pi 1.4.0 needs Node 22.19 or newer.
+Currently adapted to the Oh My Pi 18.12.5 / 18.12.6 and Pi 1.4.0 host APIs. Host acceptance has only been run on macOS, so Windows and Linux host behavior is not verified. Development tools need Bun 1.3 or newer. Pi 1.4.0 needs Node 22.19 or newer.
+
+The argument picker is available on `main` and is planned for 0.3.0. The pinned 0.2.1 installs below do not include it.
 
 ### Oh My Pi
 
@@ -64,7 +68,7 @@ omp plugin marketplace add happyfeetw/tibo-rush
 omp plugin install tibo-rush-omp@tibo-rush
 ```
 
-Sessions that were already open need one `/restart` to load the extension. After that, switching modes does not require a restart. Marketplace installs do not put the standalone CLI on your `PATH`.
+Update or reinstall the extension before running `/restart` in each open OMP session to load new code. Once loaded, switching modes does not require another restart.
 
 ### Pi
 
@@ -74,7 +78,7 @@ Install from git. This uses the main repository's Pi manifest and loads only the
 pi install git:github.com/happyfeetw/tibo-rush@v0.2.1
 ```
 
-Run `/reload` in each open Pi session, or quit and resume it. The commands are the same as in OMP.
+After updating the installed source, run `/reload` in each open Pi session, or quit and resume it. The commands are the same as in OMP.
 
 If you prefer a host-specific package, download `tibo-rush-pi-0.2.1.tgz` or `tibo-rush-omp-0.2.1.tgz` from the [Releases page](https://github.com/happyfeetw/tibo-rush/releases), unpack it into a fixed directory, and install from there:
 
@@ -86,17 +90,6 @@ omp plugin link /absolute/path/to/package
 Each package only contains its own adapter and the shared core. **Pick one install method per host.** Installing the same host twice loads the extension twice.
 
 The Pi gallery finds packages through npm, so a git install or a GitHub release does not by itself list Tibo Rush there.
-
-### Standalone CLI (optional)
-
-```sh
-git clone https://github.com/happyfeetw/tibo-rush.git
-cd tibo-rush
-git checkout v0.2.1
-bun bin/tibo-rush.mjs status
-```
-
-For a shorter command, run `bun link` in that directory and make sure Bun's global bin directory is on your `PATH`. The only CLI name is `tibo-rush`. `bun link` does not register anything with OMP or Pi.
 
 ## Using it
 
@@ -110,13 +103,22 @@ The same commands work in both hosts:
 /tibo-rush status
 ```
 
-From a terminal, use `tibo-rush <mode>`, `tibo-rush status`, or `tibo-rush status --json`. Slash-command empty args still print status. The standalone CLI with no arguments still prints usage and exits 1.
+Use `/tibo-rush` inside OMP or Pi:
 
-Argument candidates in the TUI are owned by the host. When Oh My Pi or Pi asks `/tibo-rush` for argument completions, the list is `regular`, `fast`, `extreme`, `off`, and `status`, filtered by the text already typed. Arrow keys move the highlight. A trailing space after `/tibo-rush` does not always open that list: it depends on how the buffer got there.
+1. Type `/tibo-rush ` to request argument suggestions. If the list stays closed, start typing a prefix such as `f`.
+2. Use the arrow keys to choose an item. With the argument list open, Enter inserts it; press Enter again to run it.
+3. Check that the notification says `applied`. Choose `off` to restore the session's pre-mode settings; `status` reports the current state.
+
+Submitting `/tibo-rush` with genuinely empty handler arguments still reports status. A trailing space does not open the list on every host entry path.
+
+<details>
+<summary>Keyboard behavior by host</summary>
 
 - **Oh My Pi 18.12.6:** typing through `/tibo-rush ` while the command-name list is already open updates it to the five tokens, in catalog order. Tab-accepting a unique command-name prefix (`/tibo-rus` then Tab) also opens that argument list immediately. With the argument list open, Enter inserts the highlighted token (`regular` if you have not moved the highlight) and does not submit; a second Enter runs that token. If the token is already fully typed, one Enter submits. `/tibo-rush` with no trailing space, or Esc then Enter after dismissing the list, still submits empty args as status. Prefix text such as `f` or `ex` filters the list. Paste and history restore are not claimed.
 - **Pi 1.4.0:** typing through `/tibo-rush ` while the command-name list is already open updates it to the argument list. Tab-accepting the command name leaves `/tibo-rush ` without opening the argument list until you type another character. With the argument list open, the first Enter inserts the highlighted token (`regular` if you have not moved the highlight) and does not submit; a second Enter runs that token. `/tibo-rush` with no trailing space, or Esc then Enter after dismissing the list, still submits empty args as status. Tab after the command may complete files. Paste and history restore are not claimed.
 - Loaded extensions keep the previous code until the host reloads: `/restart` on Oh My Pi, `/reload` or a new session on Pi.
+
+</details>
 
 `regular` is an everyday setup. `fast` and `extreme` are the sprint modes: `fast` moves the main model to the preset's sprint setup, and `extreme` adds the priority (Fast) service tier on top. How priority requests count against your quota is up to the provider.
 
@@ -142,7 +144,7 @@ The commands are the same, but the hosts expose different controls, and Tibo Rus
 
 ## Configuration
 
-The default shared state directory is **`~/.tibo-rush`**. Override it with `TIBO_RUSH_HOME`. The CLI and the host process must use the same directory. OMP and Pi sessions that share a directory receive the same requests. Use a separate directory for each group that should be isolated. This does not sync across machines.
+The default shared state directory is **`~/.tibo-rush`**. Override it with `TIBO_RUSH_HOME`. OMP and Pi sessions that share a directory receive the same requests. Use a separate directory for each group that should be isolated. This does not sync across machines.
 
 To customize the policy:
 
@@ -193,7 +195,7 @@ Oh My Pi:
 /restart
 ```
 
-Pi: run `pi remove <the source you installed from>`, then `/reload`. Whether the standalone CLI stays depends on how you installed it.
+Pi: run `pi remove <the source you installed from>`, then `/reload`.
 
 ## Development
 
@@ -214,6 +216,8 @@ tibo-rush/
 The shared core does not import any host API. The two adapters do not import each other, so host-specific differences stay in their own directories. The root manifest makes git installs easy, and the release build generates a separately named package for each host.
 
 The commands below run from a git checkout. Host-specific packages do not include tests or build scripts.
+
+`src/cli/controller.mjs` is an internal test/development controller. It has no installed command and is excluded from the root package and both host distributions.
 
 ```sh
 bun test

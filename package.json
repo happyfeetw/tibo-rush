@@ -10,8 +10,7 @@
   "bugs": { "url": "https://github.com/happyfeetw/tibo-rush/issues" },
   "keywords": ["pi-package", "omp", "oh-my-pi", "extension", "model-routing"],
   "engines": { "bun": ">=1.3.0" },
-  "bin": { "tibo-rush": "bin/tibo-rush.mjs" },
-  "files": ["bin/", "src/", "presets/", "README.md", "LICENSE"],
+  "files": ["src/core/", "src/hosts/", "presets/", "README.md", "LICENSE"],
   "omp": { "extensions": ["./src/hosts/tibo-rush-omp/index.ts"] },
   "pi": { "extensions": ["./src/hosts/tibo-rush-pi/index.ts"] },
   "scripts": {

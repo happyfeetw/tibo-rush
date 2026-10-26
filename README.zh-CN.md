@@ -85,7 +85,84 @@ bun bin/tibo-rush.mjs status
 /tibo-rush status
 ```
 
-终端使用 `tibo-rush <mode>`、`tibo-rush status` 或 `tibo-rush status --json`。
+终端使用 `tibo-rush <mode>`、`tibo-rush status` 或 `tibo-rush status --json`。斜杠命令真正以空参数调用时仍是 `status`。独立 CLI 不带参数仍打印用法并以状态码 1 退出。
+
+TUI 里的参数候选由宿主控制。当 Oh My Pi 或 Pi 向 `/tibo-rush` 请求参数补全时，列表为 `regular`、`fast`、`extreme`、`off`、`status`，已输入前缀会过滤。方向键移动高亮。打出 `/tibo-rush` 后再加空格，并不保证一定出现这五项：取决于输入是怎么到达这一行的。
+
+- **Oh My Pi 18.12.6：** 连续打出 `/tibo-rush ` 且命令名列表已打开时，会更新为五项参数，顺序与 catalog 一致。用 Tab 接受命令名的唯一前缀（`/tibo-rus` 再 Tab）也会立刻打开参数列表。参数列表打开时，Enter 插入高亮 token（未移动高亮则为 `regular`），不会提交；第二次 Enter 才执行该 token。token 已经完整输入时，一次 Enter 就会提交。不带空格的 `/tibo-rush`，或 Esc 取消列表后再 Enter，仍以空参提交 `status`。`f` / `ex` 等前缀会过滤列表。不声称粘贴或历史恢复会打开列表。
+- **Pi 1.4.0：** 连续打出 `/tibo-rush ` 且命令名列表已打开时，会更新为参数列表。用 Tab 接受命令名后，输入框虽是 `/tibo-rush `，参数列表不会打开，直到再输入字符。参数列表打开时，第一次 Enter 插入高亮 token（未移动高亮则为 `regular`），不会提交；第二次 Enter 才执行该 token。不带空格的 `/tibo-rush`，或 Esc 取消列表后再 Enter，仍以空参提交 `status`。命令后的 Tab 可能补全文件。不声称粘贴或历史恢复会打开列表。
+- 已加载的扩展仍是旧代码，需要宿主重新加载：Oh My Pi 用 `/restart`，Pi 用 `/reload` 或新开会话。
+
+独立 CLI（git clone / `bun link`）可补全第一个位置参数（`tibo-rush f` 与 `tibo-rush --json f`），不补全 `--json` 本身，也不在已输入档位或 `status` 后再补第二个命令 token。市场或插件安装不会把 `tibo-rush` 放进 `PATH`。`tibo-rush --complete [prefix]` 写在 Options 里，不是档位。
+
+只有 `PATH` 上已有可执行的 `tibo-rush`（git 检出后 `bun link`，或同等安装）才启用下面的片段。片段调用 `tibo-rush --complete`，不要 `eval` 它的输出。
+
+**zsh**（`~/.zshrc`）：
+
+```zsh
+# 需要 PATH 上的 `tibo-rush`（git clone + bun link）
+_tibo_rush() {
+  local -a positionals
+  local i w
+  for (( i = 2; i < CURRENT; i++ )); do
+    w=${words[i]}
+    [[ $w == --json ]] && continue
+    positionals+=("$w")
+  done
+  (( ${#positionals} == 0 )) || return 1
+  local cur=${words[CURRENT]-}
+  [[ $cur == --json || $cur == --json=* ]] && return 1
+  local -a tokens
+  tokens=(${(f)"$(tibo-rush --complete "$cur")"})
+  (( ${#tokens} )) && compadd -- "${tokens[@]}"
+}
+compdef _tibo_rush tibo-rush
+```
+
+**bash**（`~/.bashrc`；macOS `/bin/bash` 3.2）：
+
+```bash
+_tibo_rush() {
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  case "$cur" in
+    --json|--json=*) return ;;
+  esac
+  local i positional_count=0
+  for (( i = 1; i < COMP_CWORD; i++ )); do
+    case "${COMP_WORDS[i]}" in
+      --json) continue ;;
+    esac
+    positional_count=$((positional_count + 1))
+  done
+  [ "$positional_count" -eq 0 ] || return
+  COMPREPLY=()
+  local token
+  while IFS= read -r token; do
+    [ -n "$token" ] && COMPREPLY+=("$token")
+  done < <(tibo-rush --complete "$cur")
+}
+complete -F _tibo_rush tibo-rush
+```
+
+**fish**（`~/.config/fish/config.fish`）：
+
+```fish
+function __tibo_rush_needs_positional
+    set -l tokens (commandline -opc)
+    set -l cur (commandline -ct)
+    if test "$cur" = --json; or string match -q -- '--json=*' -- "$cur"
+        return 1
+    end
+    set -l n 0
+    for t in $tokens[2..-1]
+        if test "$t" != --json
+            set n (math $n + 1)
+        end
+    end
+    test $n -eq 0
+end
+complete -c tibo-rush -f -n '__tibo_rush_needs_positional' -a "(tibo-rush --complete (commandline -ct))"
+```
 
 | 预设 | 主模型 | OMP 普通编码 | 请求速度档 |
 | --- | --- | --- | --- |

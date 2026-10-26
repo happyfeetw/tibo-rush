@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import type { ThinkingLevel as Thinking } from '@earendil-works/pi-agent-core';
 import { atomicJson, getHome, listClients, MODES, policyFor, readState, setMode } from '../../core/lib.mjs';
+import { getCommandCompletions } from '../../core/commands.mjs';
 import type { RushMode, RushPolicy, RushState } from '../../core/types';
 
 type Model = NonNullable<ExtensionContext['model']>;
@@ -330,6 +331,7 @@ export default function tiboRush(pi: ExtensionAPI) {
   });
   pi.registerCommand('tibo-rush', {
     description: 'Global Tibo Rush: regular | fast | extreme | off | status (Pi has no OMP role routing)',
+    getArgumentCompletions: getCommandCompletions,
     handler: async (args, ctx) => {
       const owner = attachment;
       if (!owner || !current(owner)) throw new Error('tibo-rush requires an active Pi session');

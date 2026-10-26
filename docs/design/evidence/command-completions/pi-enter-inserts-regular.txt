@@ -1,0 +1,13 @@
+Pi 1.4.0 — Enter with the empty-prefix argument list open
+Highlight untouched. Buffer becomes /tibo-rush regular. Handler has not run.
+
+Before Enter:
+/tibo-rush
+→ regular                         日常档 / Everyday preset
+  fast                            冲刺档 / Sprint preset
+  extreme                         极限档 / Extreme preset
+  off                             恢复入档前状态 / Restore pre-mode setup
+  status                          只读状态 / Read-only status
+
+After one Enter:
+/tibo-rush regular

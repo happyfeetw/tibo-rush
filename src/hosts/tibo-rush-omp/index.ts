@@ -4,6 +4,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import type { AgentSession, ExtensionAPI, ExtensionContext } from '@oh-my-pi/pi-coding-agent';
 import { lookup, type AnySetting } from '@oh-my-pi/pi-coding-agent/config/registry';
 import { atomicJson, getHome, listClients, policyFor, readState, setMode, MODES } from '../../core/lib.mjs';
+import { getCommandCompletions } from '../../core/commands.mjs';
 import type { ThinkingLevel as Thinking, ServiceTiers as Tiers, RushState as State, RushMode as Mode, RushPolicy as Policy } from '../../core/types';
 
 type Context = ExtensionContext;
@@ -826,6 +827,7 @@ export default function tiboRush(pi: ExtensionAPI) {
   });
   pi.registerCommand('tibo-rush', {
     description: 'Global Tibo Rush configurable presets: regular | fast | extreme | off | status',
+    getArgumentCompletions: getCommandCompletions,
     handler: async (args: string, ctx: Context) => {
       if (ctx.agent.kind !== 'main') throw new Error('tibo-rush is a main-session command');
       const mode = args.trim() || 'status';

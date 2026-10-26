@@ -1,0 +1,10 @@
+OMP 18.12.6 — off after an applied fast
+Isolated TUI. Main had switched to Astra; off restored Sol.
+
+Before off:
+ π > ◑ GPT-6 Astra
+tibo-rush requested fast · applied · routing fast · main openai-codex/gpt-6-astra
+
+After /tibo-rush off:
+ Requested global tibo-rush off; this session applied.
+ π > ⦸ GPT-6.1 Sol

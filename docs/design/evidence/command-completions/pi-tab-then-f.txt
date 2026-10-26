@@ -1,0 +1,6 @@
+Pi 1.4.0 — after Tab-accept of the command name, type f
+Argument list now shows fast only.
+
+/tibo-rush f
+────────────────────────────────────────────────────────────────────────────────
+→ fast                            冲刺档 / Sprint preset

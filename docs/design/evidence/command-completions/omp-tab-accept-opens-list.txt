@@ -1,0 +1,9 @@
+OMP 18.12.6 — Tab-accept of unique command-name prefix /tibo-rus
+Isolated TUI; argument list opens immediately (unlike Pi 1.4.0).
+
+╰─ /tibo-rush
+❯ regular                         日常档 / Everyday preset
+  fast                            冲刺档 / Sprint preset
+  extreme                         极限档 / Extreme preset
+  off                             恢复入档前状态 / Restore pre-mode setup
+  status                          只读状态 / Read-only status

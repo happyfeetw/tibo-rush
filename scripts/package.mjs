@@ -17,7 +17,7 @@ try {
     const name = `tibo-rush-${host}`;
     const staging = path.join(temporary, name);
     await fs.mkdir(staging);
-    for (const relative of ["src/core", "src/cli", `src/hosts/${name}`, "bin", "presets", "README.md", "LICENSE"]) {
+    for (const relative of ["src/core", `src/hosts/${name}`, "presets", "README.md", "LICENSE"]) {
       await fs.cp(path.join(root, relative), path.join(staging, relative), { recursive: true });
     }
     const { omp, pi, scripts, ...metadata } = manifest;

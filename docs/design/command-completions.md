@@ -14,6 +14,8 @@ This document is the implementation spec for [#12](https://github.com/happyfeetw
 
 **Scope correction (2026-10-26):** #12’s command-line autocomplete is the Oh My Pi / Pi **input-box** argument list (`getArgumentCompletions`). Standalone CLI `--complete` and bash/zsh/fish README snippets shipped in PR #13 and were withdrawn. They are not product surface. Historical rows in [Implementation acceptance](#implementation-acceptance-2026-10-26) record what PR #13 contained.
 
+**Extension-only distribution (2026-10-27):** the public `tibo-rush` executable and package `bin` entry are removed. The repository's `src/cli/controller.mjs` remains an internal test/development tool and is excluded from all distribution packages. Users operate Tibo Rush through `/tibo-rush` inside OMP or Pi; earlier CLI sections below are historical design/acceptance records, not installation instructions.
+
 ---
 
 ## Overview

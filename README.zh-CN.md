@@ -12,6 +12,7 @@ Codex 订阅额度按周期重置，没用完的部分不会留到下个周期�
 
 - `fast` / `extreme` 用于冲刺，`regular` 用于日常；`off` 恢复每个会话启用模式前的设置。
 - OMP 支持切换主模型、思考强度、服务档位，以及角色和子代理路由；Pi 支持切换主模型和思考强度，并为原生 Codex 请求设置 `service_tier`。
+- 在宿主的参数列表中选择档位，不必记住或手打完整名字。Tibo Rush 作为 OMP/Pi 扩展使用，不提供独立终端命令。
 
 | 适配项目 / 分发包 | 宿主 | 会话内命令 |
 | --- | --- | --- |
@@ -28,13 +29,13 @@ Codex 订阅额度按周期重置，没用完的部分不会留到下个周期�
 
 **Oh My Pi**
 
-![Tibo Rush 在 Oh My Pi 中](assets/tibo-rush-omp-switch.gif)
+![Oh My Pi 中打开档位列表、选择 fast 生效，再选择 off 恢复](assets/tibo-rush-omp-switch.gif)
 
 **Pi**
 
-![Tibo Rush 在 Pi 中](assets/tibo-rush-pi-switch.gif)
+![Pi 中通过前缀过滤选择 fast 生效，再选择 off 恢复](assets/tibo-rush-pi-switch.gif)
 
-*以上演示均在隔离项目中录制，使用真实 Codex 订阅。`fast` 从 GPT-6.1 Sol（high）切到 GPT-6 Astra（medium），`off` 再切回来。全程没有发送模型请求。*
+*在隔离项目中录制：打开五项候选，输入 `f` 过滤，接受并执行 `fast`，确认 `applied`，再用 `off` 恢复。OMP 18.12.6 从 Sol（high）切到 Astra（medium）后恢复；Pi 1.4.0 使用离线测试供应商的模型目录和合成凭据演示相同的宿主设置变化。没有发送模型请求，不据此宣称真实供应商认证或服务端 priority 已验证。*
 
 > **社区项目**，与 OpenAI、Tibo、OMP 或 Pi 官方无隶属关系。
 > 扩展在宿主进程中运行，**不是沙箱插件**，安装前请审阅源码。
@@ -53,7 +54,9 @@ Codex 订阅额度按周期重置，没用完的部分不会留到下个周期�
 
 按你使用的宿主安装对应适配器：Oh My Pi 对应 `tibo-rush-omp`，Pi 对应 `tibo-rush-pi`。两边使用相同的会话内命令。
 
-目前已适配的宿主 API 版本为 OMP 18.12.5 / 18.12.6、Pi 1.4.0。实际宿主验证在 macOS 上完成，Windows 和 Linux 尚未经过同等验证。独立 CLI 和开发工具需要 Bun >= 1.3；Pi 1.4.0 需要 Node >= 22.19。
+目前已适配的宿主 API 版本为 OMP 18.12.5 / 18.12.6、Pi 1.4.0。实际宿主验证在 macOS 上完成，Windows 和 Linux 尚未经过同等验证。开发工具需要 Bun >= 1.3；Pi 1.4.0 需要 Node >= 22.19。
+
+档位列表已在 `main` 中，计划随 0.3.0 发布。下面固定到 0.2.1 的安装方式尚不包含该功能。
 
 ### Oh My Pi
 
@@ -72,7 +75,7 @@ omp plugin marketplace add happyfeetw/tibo-rush
 omp plugin install tibo-rush-omp@tibo-rush
 ```
 
-安装后，每个已有的 OMP 会话都需要执行一次 `/restart`，才能加载扩展。之后切换模式无需重启。插件市场安装不保证将独立 CLI 加入 PATH。
+更新或重新安装扩展后，每个已有 OMP 会话都需要执行 `/restart`，才能加载新代码。加载后切换模式无需再次重启。
 
 ### Pi
 
@@ -82,10 +85,10 @@ omp plugin install tibo-rush-omp@tibo-rush
 pi install git:github.com/happyfeetw/tibo-rush@v0.2.1
 ```
 
-安装后，在每个已有的 Pi 会话中执行 `/reload`，或退出后续接原会话，以加载扩展。加载后的模式命令与 OMP 相同。
+更新安装来源后，在每个已有的 Pi 会话中执行 `/reload`，或退出后续接原会话，以加载新代码。两边的模式命令相同。
 
 <details>
-<summary>分发包、独立 CLI 和其他安装方式</summary>
+<summary>宿主分发包安装</summary>
 
 如果需要单独安装宿主分发包，可以从 [Releases](https://github.com/happyfeetw/tibo-rush/releases) 下载 `tibo-rush-pi-0.2.1.tgz` 或 `tibo-rush-omp-0.2.1.tgz`，解压到固定目录，再按宿主选择下面的命令：
 
@@ -98,28 +101,26 @@ omp plugin link /absolute/path/to/package
 
 Pi gallery 依赖 npm 上发布的 `pi-package` 包来发现项目。提供 GitHub Release 或 Git 安装方式，并不代表项目已经上架 Pi gallery。
 
-也可以直接从源码使用独立终端 CLI（可选）：
-
-```sh
-git clone https://github.com/happyfeetw/tibo-rush.git
-cd tibo-rush
-git checkout v0.2.1
-bun bin/tibo-rush.mjs status
-```
-
-如果希望在终端直接使用短命令，在仓库目录执行 `bun link`，并确保 Bun 的全局 bin 目录已加入 PATH。CLI 的命令名只有 `tibo-rush`。`bun link` 不会为 OMP 或 Pi 注册扩展。
-
 </details>
 
 ## 使用
 
-在会话中，两个宿主都使用上面的 `/tibo-rush <mode>`。在终端中，则使用 `tibo-rush <mode>`、`tibo-rush status` 或 `tibo-rush status --json`。斜杠命令真正以空参数调用时仍是 `status`。独立 CLI 不带参数仍打印用法并以状态码 1 退出。
+在 OMP 或 Pi 会话中使用 `/tibo-rush`：
 
-TUI 里的参数候选由宿主控制。当 Oh My Pi 或 Pi 向 `/tibo-rush` 请求参数补全时，列表为 `regular`、`fast`、`extreme`、`off`、`status`，已输入前缀会过滤。方向键移动高亮。打出 `/tibo-rush` 后再加空格，并不保证一定出现这五项：取决于输入是怎么到达这一行的。
+1. 输入 `/tibo-rush ` 请求参数候选。如果列表没有打开，继续输入 `f` 等前缀。
+2. 用方向键移动高亮。参数列表打开时，Enter 先接受候选，再按一次 Enter 才执行。
+3. 确认通知显示 `applied`。选择 `off` 恢复该会话启用模式前的设置，`status` 查看当前状态。
+
+宿主真正以空参数调用 `/tibo-rush` 时仍显示状态。尾部空格并不保证在所有输入路径上打开列表。
+
+<details>
+<summary>两个宿主的按键差异</summary>
 
 - **Oh My Pi 18.12.6：** 连续打出 `/tibo-rush ` 且命令名列表已打开时，会更新为五项参数，顺序与 catalog 一致。用 Tab 接受命令名的唯一前缀（`/tibo-rus` 再 Tab）也会立刻打开参数列表。参数列表打开时，Enter 插入高亮 token（未移动高亮则为 `regular`），不会提交；第二次 Enter 才执行该 token。token 已经完整输入时，一次 Enter 就会提交。不带空格的 `/tibo-rush`，或 Esc 取消列表后再 Enter，仍以空参提交 `status`。`f` / `ex` 等前缀会过滤列表。不声称粘贴或历史恢复会打开列表。
 - **Pi 1.4.0：** 连续打出 `/tibo-rush ` 且命令名列表已打开时，会更新为参数列表。用 Tab 接受命令名后，输入框虽是 `/tibo-rush `，参数列表不会打开，直到再输入字符。参数列表打开时，第一次 Enter 插入高亮 token（未移动高亮则为 `regular`），不会提交；第二次 Enter 才执行该 token。不带空格的 `/tibo-rush`，或 Esc 取消列表后再 Enter，仍以空参提交 `status`。命令后的 Tab 可能补全文件。不声称粘贴或历史恢复会打开列表。
 - 已加载的扩展仍是旧代码，需要宿主重新加载：Oh My Pi 用 `/restart`，Pi 用 `/reload` 或新开会话。
+
+</details>
 
 `regular` 使用日常配置，`fast` 和 `extreme` 用于冲刺。`fast` 将主模型切到预设的冲刺配置。产品的 `fast` 模式不等于 priority/Fast 档：示例里的 `fast` 仍是 Standard，`extreme` 才启用 priority。Standard 对应配置里的 `default`，priority 对应供应商的 Fast 服务档位。priority 如何计入额度，由供应商决定。
 
@@ -153,7 +154,7 @@ TUI 里的参数候选由宿主控制。当 Oh My Pi 或 Pi 向 `/tibo-rush` 请
 
 ## 配置
 
-默认使用 **`~/.tibo-rush`** 作为共享状态目录，可以通过 `TIBO_RUSH_HOME` 指定其他目录。CLI 与要控制的宿主进程必须使用同一目录；使用该目录的 OMP 和 Pi 会话会同时收到切换请求。
+默认使用 **`~/.tibo-rush`** 作为共享状态目录，可以通过 `TIBO_RUSH_HOME` 指定其他目录。使用该目录的 OMP 和 Pi 会话会同时收到切换请求。
 
 要把会话分成互不影响的几组，就给各组进程设置不同的目录。Tibo Rush 本身不提供跨机器同步。
 
@@ -219,7 +220,7 @@ OMP 市场卸载：
 /restart
 ```
 
-Pi 使用 `pi remove <安装时的来源>` 卸载，再执行 `/reload`。终端命令是否保留，取决于独立 CLI 的安装方式。
+Pi 使用 `pi remove <安装时的来源>` 卸载，再执行 `/reload`。
 
 ## 开发
 
@@ -242,6 +243,8 @@ tibo-rush/
 共享核心不依赖宿主 API，两个适配器也互不导入，各自处理宿主间的能力差异。根目录的包清单用于支持 Git 安装；发布时会为每个宿主构建独立命名的包。
 
 以下命令需要在 Git 源码仓库中执行；宿主专属发行包不包含测试与构建脚本。
+
+`src/cli/controller.mjs` 仅供仓库测试和开发使用，不注册可安装命令，也不进入根包或两个宿主分发包。
 
 ```sh
 bun test

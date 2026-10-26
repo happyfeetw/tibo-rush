@@ -835,7 +835,7 @@ export default function tiboRush(pi: ExtensionAPI) {
         const state = await readState();
         const clients = await listClients();
         const model = ctx.models.current();
-        ctx.ui.notify(`tibo-rush requested ${state.mode} · ${clients.length} live sessions; this session ${status}, routing ${routingPolicy ? routingMode : owned ? 'unknown' : 'baseline'}, main ${model ? `${model.provider}/${model.id}` : 'unknown'}${lastError ? `; ${lastError}` : ''}. Use tibo-rush status for all sessions.`, lastError ? 'warning' : 'info');
+        ctx.ui.notify(`tibo-rush requested ${state.mode} · ${clients.length} live sessions; this session ${status}, routing ${routingPolicy ? routingMode : owned ? 'unknown' : 'baseline'}, main ${model ? `${model.provider}/${model.id}` : 'unknown'}${lastError ? `; ${lastError}` : ''}. Run /tibo-rush status in each session to inspect its applied state.`, lastError ? 'warning' : 'info');
         return;
       }
       if (!MODES.includes(mode)) throw new Error('Use regular, fast, extreme, off or status');

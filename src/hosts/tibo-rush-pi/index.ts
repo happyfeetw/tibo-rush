@@ -341,7 +341,7 @@ export default function tiboRush(pi: ExtensionAPI) {
         await enqueue(owner);
         const state = await readState();
         const clients = await listClients();
-        ctx.ui.notify(`tibo-rush requested ${state.mode}; ${clients.length} live sessions. Pi: ${status}; actual main ${ctx.model ? `${ctx.model.provider}/${ctx.model.id}` : 'unknown'}:${pi.getThinkingLevel()}; tier ${tier ?? 'none'}; role routing unsupported; priority hook ${supportsPriority(ctx.model) ? 'supported (server acceptance not guaranteed)' : 'unsupported'}${lastError ? `; ${lastError}` : ''}. Use tibo-rush status for all sessions.`, lastError ? 'warning' : 'info');
+        ctx.ui.notify(`tibo-rush requested ${state.mode}; ${clients.length} live sessions. Pi: ${status}; actual main ${ctx.model ? `${ctx.model.provider}/${ctx.model.id}` : 'unknown'}:${pi.getThinkingLevel()}; tier ${tier ?? 'none'}; role routing unsupported; priority hook ${supportsPriority(ctx.model) ? 'supported (server acceptance not guaranteed)' : 'unsupported'}${lastError ? `; ${lastError}` : ''}. Run /tibo-rush status in each session to inspect its applied state.`, lastError ? 'warning' : 'info');
         return;
       }
       if (!MODES.includes(mode)) throw new Error('Use regular, fast, extreme, off or status');

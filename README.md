@@ -1,6 +1,10 @@
-# Tibo Rush
+<p align="center">
+  <img src="assets/tibo-rush-icon.png" width="128" height="128" alt="Tibo Rush">
+</p>
 
-English | [中文](README.zh-CN.md)
+<h1 align="center">Tibo Rush</h1>
+
+<p align="center">English | <a href="README.zh-CN.md">中文</a></p>
 
 **One-switch subscription quota sprint modes for Oh My Pi and Pi.**
 
@@ -37,7 +41,6 @@ Codex subscription quota resets on a schedule, and whatever you don't use doesn'
 - [Configuration](#configuration)
 - [How state and recovery work](#how-state-and-recovery-work)
 - [Uninstalling](#uninstalling)
-- [Upgrading from v0.1.0](#upgrading-from-v010-or-a-manual-install)
 - [Development](#development)
 
 ## Installation
@@ -262,18 +265,6 @@ Oh My Pi:
 ```
 
 Pi: run `pi remove <the source you installed from>`, then `/reload`. Whether the standalone CLI stays depends on how you installed it.
-
-## Upgrading from v0.1.0 or a manual install
-
-v0.1.0 was published as `happyfeetw/tibo-impact` / `tibo-impact`, with the host packages `tibo-impact-omp` and `tibo-impact-pi`. Its state directory was `~/.tibo-impact` and its variable was `TIBO_IMPACT_HOME`.
-
-Before you remove or load the new version, run `/tibo-impact off` on the old version. The old CLI is `tibo-impact off` or `omp-impact off`. Confirm every related session has restored. Resume any offline sessions so they can finish. If you set the old environment variable, keep it set while the old controller and host still point at the old directory, and unset it only after cleanup.
-
-Then uninstall the old OMP package with `/marketplace uninstall tibo-impact-omp@tibo-impact`. For Pi, use `pi remove <the old source>`. Remove the standalone CLI the same way you installed it. Install Tibo Rush using the steps above, and restart or reload each session so the old and new adapters never run at the same time. The new version only registers `/tibo-rush` and `tibo-rush`. There are no aliases for the old commands.
-
-Very early manual installs may have used `~/.omp/agent/extensions/tibo-impact.ts`, the state directory `~/.omp/agent/tibo-impact`, and a wrapper at `~/.local/bin/omp-impact`. Follow the same order: `off` every old session through the old entry point and let it restore. Then remove the extension file and the wrapper. Check that `command -v omp-impact` no longer finds the old controller. Keep a working old controller until the old sessions have restored, and do not delete their restore data early.
-
-The new version uses a fresh `~/.tibo-rush` state directory by default, with `TIBO_RUSH_HOME` as the override. **It does not import, move or delete old state, baselines or logs.** Do not copy the old directory, and do not copy restore metadata or edit log markers to fake a migration. If you want to keep a custom policy, review your model settings by hand and recreate them in `policies.json`. Do not copy `state.json`, `clients/`, `baselines/`, `handoffs/` or host log restore records.
 
 ## Development
 

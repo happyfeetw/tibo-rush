@@ -26,11 +26,15 @@ Choose `regular`, `fast`, `extreme`, `off`, or `status` from the host's argument
 
 *Oh My Pi 18.12.6 in an isolated project: open the five-option list, filter with `f`, accept and run `fast`, then run `off`. The host changes from Sol (high) to Astra (medium) and restores Sol. Synthetic credentials; no model requests.*
 
+[Download MP4](https://github.com/happyfeetw/tibo-rush/releases/download/v0.3.0/tibo-rush-omp-picker.mp4)
+
 **Pi**
 
 ![Pi: filter the argument list to fast, apply it, then restore with off](assets/tibo-rush-pi-switch.gif)
 
 *Pi 1.4.0 follows the same selection, application and restoration flow. An offline test provider supplies the model catalog and synthetic credentials; the recording demonstrates host settings, not provider authentication or server-side priority.*
+
+[Download MP4](https://github.com/happyfeetw/tibo-rush/releases/download/v0.3.0/tibo-rush-pi-picker.mp4)
 
 > **Community project.** Not affiliated with OpenAI, Tibo, Oh My Pi or Pi.
 > It runs inside the host process and is **not a sandbox**. Read the source before you install it.
@@ -49,7 +53,7 @@ Choose `regular`, `fast`, `extreme`, `off`, or `status` from the host's argument
 
 Currently adapted to the Oh My Pi 18.12.5 / 18.12.6 and Pi 1.4.0 host APIs. Host acceptance has only been run on macOS, so Windows and Linux host behavior is not verified. Development tools need Bun 1.3 or newer. Pi 1.4.0 needs Node 22.19 or newer.
 
-The argument picker is available on `main` and is planned for 0.3.0. The pinned 0.2.1 installs below do not include it.
+The argument picker is included in 0.3.0. Install or update the extension before reloading the host.
 
 ### Oh My Pi
 
@@ -75,12 +79,12 @@ Update or reinstall the extension before running `/restart` in each open OMP ses
 Install from git. This uses the main repository's Pi manifest and loads only the Pi adapter, not OMP:
 
 ```sh
-pi install git:github.com/happyfeetw/tibo-rush@v0.2.1
+pi install git:github.com/happyfeetw/tibo-rush@v0.3.0
 ```
 
 After updating the installed source, run `/reload` in each open Pi session, or quit and resume it. The commands are the same as in OMP.
 
-If you prefer a host-specific package, download `tibo-rush-pi-0.2.1.tgz` or `tibo-rush-omp-0.2.1.tgz` from the [Releases page](https://github.com/happyfeetw/tibo-rush/releases), unpack it into a fixed directory, and install from there:
+If you prefer a host-specific package, download `tibo-rush-pi-0.3.0.tgz` or `tibo-rush-omp-0.3.0.tgz` from the [Releases page](https://github.com/happyfeetw/tibo-rush/releases), unpack it into a fixed directory, and install from there:
 
 ```sh
 pi install /absolute/path/to/package

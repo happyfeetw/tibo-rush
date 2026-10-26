@@ -4,7 +4,7 @@
 
 <h1 align="center">Tibo Rush</h1>
 
-<p align="center">English | [中文](README.zh-CN.md)</p>
+<p align="center">English | <a href="README.zh-CN.md">中文</a></p>
 
 **One-switch subscription quota sprint modes for Oh My Pi and Pi.**
 

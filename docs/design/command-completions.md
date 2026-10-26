@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | **Date** | 2026-10-26 |
-| **Status** | Implemented (option A); acceptance recorded 2026-10-26 |
+| **Status** | Implemented (option A, host TUI picker). CLI `--complete` and README shell snippets withdrawn 2026-10-26. |
 | **Repo** | https://github.com/happyfeetw/tibo-rush |
 | **Tracking issue** | https://github.com/happyfeetw/tibo-rush/issues/12 |
 | **Current product version** | 0.2.1 |
@@ -12,13 +12,15 @@
 
 This document is the implementation spec for [#12](https://github.com/happyfeetw/tibo-rush/issues/12). Sections **Contracts**, **Host-controlled TUI**, and **Q1 (closed: option A)** are the source of truth. **Verification** is the plan that was executed; **[Implementation acceptance](#implementation-acceptance-2026-10-26)** is the recorded result. Other sections point at them instead of restating conflicting rules.
 
+**Scope correction (2026-10-26):** #12’s command-line autocomplete is the Oh My Pi / Pi **input-box** argument list (`getArgumentCompletions`). Standalone CLI `--complete` and bash/zsh/fish README snippets shipped in PR #13 and were withdrawn. They are not product surface. Historical rows in [Implementation acceptance](#implementation-acceptance-2026-10-26) record what PR #13 contained.
+
 ---
 
 ## Overview
 
-`/tibo-rush` currently registers a free-text argument on Oh My Pi and Pi. Users must type a full token (`regular`, `fast`, `extreme`, `off`, or `status`). There is no argument list and no shell tab completion.
+`/tibo-rush` currently registers a free-text argument on Oh My Pi and Pi. Users must type a full token (`regular`, `fast`, `extreme`, `off`, or `status`). There is no argument list.
 
-This design adds a **host-agnostic command catalog and synchronous completer** in `src/core/commands.mjs`, wires it into both adapters as `getArgumentCompletions`, and exposes the same tokens through `tibo-rush --complete [prefix]` for git-clone / `bun link` shell users.
+This design adds a **host-agnostic command catalog and synchronous completer** in `src/core/commands.mjs` and wires it into both adapters as `getArgumentCompletions`.
 
 The hook can only return candidates. **When the list opens, whether Enter submits or accepts a row, and whether a trailing space is enough to show five tokens, are host TUI behavior.** They are recorded per host. They are not inferred from the other host, and they are not the same as “the slash handler still treats empty args as status.”
 
@@ -104,11 +106,10 @@ There is no RPC for “what would the dropdown show.” Smoke can assert registr
 
 1. **Wire a shared argument completer** so that whenever a host asks for `/tibo-rush` argument completions, it receives `regular | fast | extreme | off | status` with short bilingual descriptions, prefix-filtered, `value` without a trailing space. OMP 18.12.6 is the primary TUI surface for #12.
 2. **Same completer on Pi 1.4.0**, so the two hosts keep one command surface. A recorded Pi 1.4.0 picker is a merge gate for any README sentence that names Pi’s picker.
-3. **Standalone CLI tab completion** of the **first positional** via `tibo-rush --complete [prefix]` (listed under Options, not a mode) and short bash/zsh/fish snippets. Marketplace installs do not put the CLI on `PATH`; document that.
-4. **Single source of truth** for token names and picker descriptions in `src/core/commands.mjs`. That file must not import `lib.mjs` or any host API. Completer unit-tested with `bun test`.
-5. **Handler and restore contracts unchanged:** slash handler empty args → `status`; CLI with no args stays USAGE / exit 1; unknown token → error; `setMode` / reconcile / `off` untouched. This is **not** a claim that every TUI keystroke still means what it meant in 0.2.1 once a list is on screen.
-6. **Docs** that match the hook **and** the recorded host limits (see [Host-controlled TUI](#host-controlled-tui)).
-7. **Tracking:** issue #12; one implementation PR (`Closes #12`); later release PR for marketplace version.
+3. **Single source of truth** for token names and picker descriptions in `src/core/commands.mjs`. That file must not import `lib.mjs` or any host API. Completer unit-tested with `bun test`.
+4. **Handler and restore contracts unchanged:** slash handler empty args → `status`; CLI with no args stays USAGE / exit 1; unknown token → error; `setMode` / reconcile / `off` untouched. This is **not** a claim that every TUI keystroke still means what it meant in 0.2.1 once a list is on screen.
+5. **Docs** that match the hook **and** the recorded host limits (see [Host-controlled TUI](#host-controlled-tui)).
+6. **Tracking:** issue #12; one implementation PR (`Closes #12`); later release PR for marketplace version.
 
 Issue #12’s user-facing sentence — “after `/tibo-rush ` a selectable list appears” — is the intended UX. **Q1 is closed as option A:** ship the native `getArgumentCompletions` hook, document each host’s trigger limits, and do not add a custom autocomplete provider, editor, or post-submit picker. A trailing space after `/tibo-rush` does **not** always open the five-row list. The host decides when to call the hook.
 
@@ -120,11 +121,10 @@ Issue #12’s user-facing sentence — “after `/tibo-rush ` a selectable list 
 - Adding `@oh-my-pi/pi-tui` or `@earendil-works/pi-tui` as a dependency.
 - Automating the TUI dropdown in smoke tests, or claiming Windows/Linux TUI verification.
 - Bumping marketplace / package version in the implementation PR.
-- Shipping a completion framework, `contrib/` scripts, or `--completion-script`.
+- Shipping a completion framework, `contrib/` scripts, `--completion-script`, CLI `--complete`, or bash/zsh/fish README snippets. #12 is the host input-box picker.
 - Post-submit `ctx.ui.select()` / `ctx.ui.custom()`.
 - Custom editor or `autocomplete` provider wrapping the host TUI.
 - Network, model, or quota calls from the completer, including reading `policies.json` / `state.json` on each keystroke.
-- `argv.includes("--complete")` dispatch, or `--complete=fa`.
 - Reordering catalog rows, wrapping the handler, or adding extra UI so that Enter-on-open-list looks like empty-arg status.
 
 ---
@@ -151,9 +151,9 @@ The completer does not read policies, state, env, or the filesystem. It must not
 
 When the host **invokes** the command with `args.trim() === ""`, the handler still runs read-only **status**. When it invokes with a mode token, it still `setMode`. When it invokes with an unknown token, it still errors and does not write `state.json`.
 
-### C3. CLI (extension-owned, unchanged except `--complete`)
+### C3. CLI (extension-owned, unchanged)
 
-No args → USAGE, exit 1. `--complete` is defined in [Standalone CLI](#standalone-cli---complete): strip `--json`, then `args[0] === "--complete"`.
+No args → USAGE, exit 1. There is no `--complete` flag. `--complete` is an unknown command.
 
 ### C4. Host TUI (host-owned)
 
@@ -165,9 +165,9 @@ The extension does not control:
 
 **Empty completion prefix**, **empty handler args**, and **Enter consumed by the list** are three different events. Do not describe them as one “empty input” behavior.
 
-### C5. Shell snippets (documentation)
+### C5. Shell snippets
 
-Snippets complete the **first positional argument**, not “the second word on the line.” Already-typed `--json` is skipped when counting positionals. `--json` itself is not completed. After a mode or `status` is already present, no further command token is offered. Same rule in bash, zsh, and fish.
+Withdrawn. README does not ship bash/zsh/fish completion snippets.
 
 ---
 
@@ -184,8 +184,8 @@ Snippets complete the **first positional argument**, not “the second word on t
 | Picker copy | Policy-neutral bilingual one-liners; **no** model IDs and **no** implied `priority` | Completer cannot read `policies.json`. `policyFor()` accepts `extreme.tier = "default"` and non-priority `agentTiers`. |
 | Item order | `regular`, `fast`, `extreme`, `off`, `status` | README command block. Independent of `MODES` (`off` first). |
 | Enter / space / Tab | Document per host; do not change handler or catalog order | Covering Pi’s first-item Enter by putting `status` first, or adding a post-submit picker, would hide the host behavior. |
-| CLI `--complete` | Strip `--json`, then `args[0] === "--complete"` | Matches `controller.mjs` today. |
-| Shell snippets | First **positional**; skip `--json`; no second token | #12 “first positional only.” `CURRENT == 2` / `COMP_CWORD -eq 1` is “first word,” which is wrong for `tibo-rush --json f`. |
+| CLI `--complete` | **Withdrawn.** Unknown command; not listed in USAGE | #12 is the host input-box picker. PR #13 shipped `--complete` and it was removed. |
+| Shell snippets | **Withdrawn.** No README snippets | Same. |
 | Versioning | Minor **0.3.0** in a follow-up release PR | New user-visible capability. Feat PR does not bump. |
 | Feature flag | None | Completer cannot affect restore/`off`. Missing list = type tokens as today. |
 | TUI architecture | Stay on `getArgumentCompletions` (Q1 = A) | Custom editor / provider is out of scope. Host trigger gaps are documented, not closed by new TUI architecture. |
@@ -203,8 +203,7 @@ flowchart LR
     PI["tibo-rush-pi/index.ts<br/>getArgumentCompletions"]
   end
   subgraph cli [Standalone CLI]
-    CTRL["cli/controller.mjs<br/>--complete [prefix]"]
-    SH["bash / zsh / fish snippet<br/>first positional; skip --json"]
+    CTRL["cli/controller.mjs<br/>modes / status / --json"]
   end
   subgraph core [Shared core — no host imports]
     CAT["commands.mjs<br/>COMMAND_CATALOG<br/>getCommandCompletions<br/>does not import lib.mjs"]
@@ -214,8 +213,6 @@ flowchart LR
   TUI -->|sync prefix when the host asks| PI
   OMP --> CAT
   PI --> CAT
-  SH -->|"tibo-rush --complete"| CTRL
-  CTRL --> CAT
   OMP -.->|handler unchanged| LIB
   PI -.->|handler unchanged| LIB
   CTRL -.->|modes / status unchanged| LIB
@@ -267,7 +264,7 @@ export const COMMAND_CATALOG = [
 ];
 
 /**
- * Synchronous argument completer for `/tibo-rush` and `tibo-rush --complete`.
+ * Synchronous argument completer for `/tibo-rush`.
  * Never throws. Returns null when the host should hide the list.
  *
  * @param {unknown} argumentPrefix
@@ -427,148 +424,9 @@ OMP 18.12.5 was not launched in this pass. Do not claim 18.12.5 TUI from the 18.
 | Pi 1.4.0: Enter while argument list is open | list consumes Enter | highlighted token inserted; **not** status |
 | CLI `tibo-rush` with no args | `args.length === 0` | **USAGE, exit 1** |
 
-### Standalone CLI: --complete
+### Standalone CLI: --complete (withdrawn)
 
-`src/cli/controller.mjs` gains `--complete` as a first-token flag **after** the existing `--json` strip. It is listed under Options, not as a mode. It never calls `readState` / `setMode`.
-
-```js
-async function run(argv) {
-  const jsonMode = argv.includes("--json"); // unused on the --complete path
-  const args = argv.filter((a) => a !== "--json");
-
-  if (args[0] === "--complete") {
-    const prefix = args[1] ?? "";
-    // ignore args.slice(2); do not consult --help / -h
-    const items = getCommandCompletions(prefix) ?? [];
-    for (const item of items) console.log(item.value);
-    return;
-  }
-
-  if (args.length === 0 || args.includes("--help") || args.includes("-h")) {
-    console.log(USAGE.trim());
-    process.exit(args.length === 0 ? 1 : 0);
-  }
-
-  // existing status / MODES lookup unchanged
-}
-```
-
-Worked examples:
-
-| argv | After stripping `--json` | Result |
-| --- | --- | --- |
-| `--complete` | `["--complete"]` | all five tokens, exit 0 |
-| `--json --complete` | `["--complete"]` | all five tokens, not JSON |
-| `--complete --json` | `["--complete"]` | all five tokens (`--json` stripped before prefix) |
-| `--complete --help` | `["--complete", "--help"]` | prefix `"--help"` → empty stdout, **not** USAGE |
-| `--help --complete` | `["--help", "--complete"]` | USAGE (`args[0]` is not `--complete`) |
-| `fast --complete` | `["fast", "--complete"]` | `Unexpected arguments: --complete` |
-| `--complete=fa` | `["--complete=fa"]` | unknown mode — **out of scope** |
-
-Successful `--complete`:
-
-- Print matching `value`s, one per line. Missing prefix ≡ all five in catalog order.
-- Zero matches: exit 0, empty stdout.
-- Extra argv after the prefix is ignored.
-- Must not create `~/.tibo-rush` or read `state.json` / policies.
-
-USAGE: one Options line:
-
-```text
-  --complete [prefix]                     打印匹配的档位 token，供 shell 补全 / print matching tokens for shell completion
-```
-
-No `--completion-script` generator.
-
-#### Shell snippets (README)
-
-Require `tibo-rush` on `PATH` (git checkout / `bun link`). Marketplace / plugin install does **not** install the CLI.
-
-Rule ([C5](#c5-shell-snippets-documentation)): first **positional**, skip already-typed `--json`, do not complete `--json`, do not offer a second command token after `regular|fast|extreme|off|status`.
-
-| Line | Completes? |
-| --- | --- |
-| `tibo-rush f<Tab>` | yes (`fast`) |
-| `tibo-rush --json f<Tab>` | yes (`fast`) — `--json` is not a positional |
-| `tibo-rush --json <Tab>` | yes (all five) |
-| `tibo-rush --json --json <Tab>` | yes (all five) — repeated `--json` is still skipped |
-| `tibo-rush --json --json f<Tab>` | yes (`fast`) |
-| `tibo-rush --<Tab>` / `tibo-rush --json<Tab>` | no (do not complete options; prefix `--` / `--json` matches nothing) |
-| `tibo-rush fast <Tab>` | no |
-| `tibo-rush status <Tab>` | no |
-| `tibo-rush --json fast <Tab>` | no |
-
-**zsh** (`words[1]` is the command; `CURRENT` is the word under the cursor):
-
-```zsh
-# ~/.zshrc — requires `tibo-rush` on PATH (git clone + bun link)
-_tibo_rush() {
-  local -a positionals
-  local i w
-  for (( i = 2; i < CURRENT; i++ )); do
-    w=${words[i]}
-    [[ $w == --json ]] && continue
-    positionals+=("$w")
-  done
-  (( ${#positionals} == 0 )) || return 1
-  local cur=${words[CURRENT]-}
-  [[ $cur == --json || $cur == --json=* ]] && return 1
-  local -a tokens
-  tokens=(${(f)"$(tibo-rush --complete "$cur")"})
-  (( ${#tokens} )) && compadd -- "${tokens[@]}"
-}
-compdef _tibo_rush tibo-rush
-```
-
-**bash** (macOS `/bin/bash` 3.2: `COMP_WORDS[0]` is the command; `COMP_CWORD` is the index being completed):
-
-```bash
-# ~/.bashrc
-_tibo_rush() {
-  local cur="${COMP_WORDS[COMP_CWORD]}"
-  case "$cur" in
-    --json|--json=*) return ;;
-  esac
-  local i positional_count=0
-  for (( i = 1; i < COMP_CWORD; i++ )); do
-    case "${COMP_WORDS[i]}" in
-      --json) continue ;;
-    esac
-    positional_count=$((positional_count + 1))
-  done
-  [ "$positional_count" -eq 0 ] || return
-  COMPREPLY=()
-  local token
-  while IFS= read -r token; do
-    [ -n "$token" ] && COMPREPLY+=("$token")
-  done < <(tibo-rush --complete "$cur")
-}
-complete -F _tibo_rush tibo-rush
-```
-
-**fish** (same first-positional rule; implementation acceptance ran this snippet on a real `fish` 4.9.3 binary from a temporary bottle extract):
-
-```fish
-function __tibo_rush_needs_positional
-    set -l tokens (commandline -opc)
-    set -l cur (commandline -ct)
-    if test "$cur" = --json; or string match -q -- '--json=*' -- "$cur"
-        return 1
-    end
-    set -l n 0
-    for t in $tokens[2..-1]
-        if test "$t" != --json
-            set n (math $n + 1)
-        end
-    end
-    test $n -eq 0
-end
-complete -c tibo-rush -f -n '__tibo_rush_needs_positional' -a "(tibo-rush --complete (commandline -ct))"
-```
-
-Do not add `contrib/` in v1.
-
-`--complete` unit tests are necessary and **not sufficient** to claim shell completion works. The implementation pass ran the README bash, zsh, and fish snippets against real Tab in a PTY (temporary `PATH`). Syntax-only reading of a snippet is not a pass. A missing fish binary must be reported unverified; this pass used fish.
+PR #13 added `tibo-rush --complete [prefix]` and README bash/zsh/fish snippets. Those were withdrawn: `--complete` is an unknown command, USAGE does not list it, and README has no shell snippets. The catalog remains for the host TUI hook only. CLI `controller.mjs` does not import `commands.mjs`.
 
 ### Handler remains the source of truth
 
@@ -590,19 +448,13 @@ No new slash command. Existing sessions still need `/restart` (OMP) or `/reload`
 
 ### CLI
 
-| Invocation | Before | After |
+| Invocation | Before 0.2.1 | After (current) |
 | --- | --- | --- |
 | `tibo-rush <mode>` | set requested mode | unchanged |
 | `tibo-rush status` | read-only | unchanged |
 | `tibo-rush` (no args) | USAGE, exit 1 | **unchanged** |
-| `tibo-rush --help` | USAGE | USAGE plus `--complete` under Options |
-| `tibo-rush --complete` | unknown mode, exit 1 | print five tokens, exit 0 |
-| `tibo-rush --complete fa` | unknown mode | print `fast` |
-| `tibo-rush --json --complete` | unknown mode | five tokens, not JSON |
-| `tibo-rush --complete --json` | would have used prefix `--json` if not stripped | five tokens, not JSON |
-| `tibo-rush --complete --help` | USAGE if help ran first | empty stdout if prefix `--help` does not match |
-| `tibo-rush fast --complete` | `Unexpected arguments` | **unchanged** |
-| `tibo-rush --complete=fa` | unknown mode | **unchanged** / out of scope |
+| `tibo-rush --help` | USAGE | **unchanged** (no `--complete` line) |
+| `tibo-rush --complete` | unknown mode, exit 1 | **unknown mode, exit 1** (PR #13 flag withdrawn) |
 
 ### Types
 
@@ -663,10 +515,9 @@ Would mask host Enter semantics and surprise users who expect the first README t
 | Threat | Severity | Mitigation |
 | --- | --- | --- |
 | Completer throws into the TUI | High | `try/catch` → `null`. Tests: non-strings, whitespace, 1 MiB prefix. |
-| Completer reads or writes `state.json` / policies | High (contract) | No `lib.mjs` import. `--complete` returns before any core I/O. Tests: no files under a private `TIBO_RUSH_HOME`. |
+| Completer reads or writes `state.json` / policies | High (contract) | No `lib.mjs` import. Completer has no I/O. Tests: no files under a private `TIBO_RUSH_HOME`. |
 | Completer triggers model / network | High | No `fetch`, no `setModel`. Offline by construction. |
 | Completer I/O on every keystroke to “fix” `extreme` copy | High (also UX) | Neutral catalog strings. Do not read policy to decorate `priority`. |
-| Shell completion injection | Medium | `--complete` prints catalog values only. Snippets use `compadd` / `COMPREPLY`. |
 | Picker screenshot leaks a personal session | Medium | Throwaway demo, no paid model calls. |
 | New file in the host process | Low | Static strings. Existing SECURITY.md applies. |
 
@@ -676,7 +527,7 @@ No new PII. No telemetry. Do not log keystrokes.
 
 ## Observability
 
-Do not log, metric, or trace completions. `--complete` is the inspectable path. No new CI workflow. Real-host smoke stays manual with `OMP_BIN` / `PI_CLI_JS`.
+Do not log, metric, or trace completions. No new CI workflow. Real-host smoke stays manual with `OMP_BIN` / `PI_CLI_JS`.
 
 ---
 
@@ -694,17 +545,17 @@ No feature flag.
 | --- | --- | --- |
 | OMP marketplace / plugin | `/restart` per open session | None |
 | Pi git/package | `/reload` or quit + resume | None |
-| Standalone CLI | next process | `--complete` only; no state I/O |
+| Standalone CLI | next process | none |
 
 Rollback: revert the feat PR or reinstall 0.2.1, then `/restart` or `/reload`. Never delete `state.json` / `clients/` / `baselines/`.
 
-Version **0.3.0** (minor): new capability and CLI flag, not a restore-contract break. Feat PR does not bump versions.
+Version **0.3.0** (minor): new host TUI picker capability, not a restore-contract break. Feat PR does not bump versions.
 
 ---
 
 ## Verification
 
-This section is the **plan**. Recorded results are in [Implementation acceptance](#implementation-acceptance-2026-10-26). Do not treat `bun test` of `--complete` as TUI or shell-completion proof. Component probes are not TUI recordings.
+This section is the **plan**. Recorded results are in [Implementation acceptance](#implementation-acceptance-2026-10-26). Do not treat `bun test` as TUI proof. Component probes are not TUI recordings.
 
 ### Unit tests (`bun test`)
 
@@ -720,27 +571,11 @@ This section is the **plan**. Recorded results are in [Implementation acceptance
 8. Non-string → `null`, no throw.
 9. 1 MiB prefix → `null`, no throw.
 10. Return value is not a Promise.
-11. `--complete` spawn creates no files under private `TIBO_RUSH_HOME`.
+11. `--complete` is an unknown command; `--help` does not list it.
 
 Invalid-mode coverage stays in `tests/behavior.test.mjs`. Catalog `description` copy is human-reviewed; do not add a word-blacklist test.
 
 Do **not** add tests that assert README or design-doc English/Chinese wording, exact help sentences, import statements, or adapter wiring source text.
-
-### CLI `--complete` process tests
-
-Dedicated spawn in `tests/commands.test.mjs`. **Do not** reuse `behavior.test.mjs` `cli()` (it always appends `--json` and `JSON.parse`s).
-
-Cases: `--complete`; `--complete fa`; `--complete z`; `--json --complete` and `--complete --json`; `--complete --help`; `--complete=fa`; CLI no-args still USAGE / exit 1; `--help` lists `--complete` under Options (presence, not the exact bilingual line). Extra argv after the prefix is ignored.
-
-### Shell snippet checks (feat PR, temporary dirs)
-
-Required to claim README shell completion. The **Design-pass** column is historical (pre-implementation probes). The **Implementation** column is the recorded feat-branch result. Do not treat the design-pass mock as the gate.
-
-| Shell | Design-pass (historical) | Implementation (2026-10-26) |
-| --- | --- | --- |
-| zsh 5.9 | gating logic probed with a mock | real Tab: empty first positional, `f` / `ex`, `--json f`, repeated `--json`, typing `--json`, second positional after `fast`/`status`, no match |
-| bash 3.2.57 | same mock | same real-Tab matrix |
-| fish 4.9.3 | not installed on this machine | real Tab on a temporary bottle extract (login shell and user config unchanged); same matrix. Fish is **not** optional and was **not** skipped. |
 
 ### Real-host smoke (unchanged automation)
 
@@ -783,14 +618,7 @@ Host acceptance remains **macOS only**. Throwaway project, no paid model calls, 
 
 If the Pi checklist is skipped, README must not say Pi opens an argument picker (`Agents.md`: do not claim unverified host TUI).
 
-**CLI:**
-
-```sh
-bun bin/tibo-rush.mjs --complete
-bun bin/tibo-rush.mjs --complete fa
-```
-
-plus the shell snippet checks.
+**CLI:** no `--complete` flag. `tibo-rush --complete` is an unknown command. No-args still prints USAGE and exits 1.
 
 ### Packaging
 
@@ -808,14 +636,12 @@ Recorded feat-branch result. The checklist above is the plan that was executed. 
 
 | Check | Result |
 | --- | --- |
-| `bun test` | Implementation pass: 36 including a description word-blacklist. Cleanup deleted that test and re-ran `tests/commands.test.mjs` (16 pass). Full suite not repeated in this cleanup. |
+| `bun test` | Implementation pass: 36 including a description word-blacklist. Cleanup deleted that test and re-ran `tests/commands.test.mjs` (16 pass). Full suite not repeated in this cleanup. CLI `--complete` and README shell snippets were later withdrawn. |
 | OMP smoke | `omp/18.12.6`, 22 checks, 0 model calls |
 | Pi smoke | Pi 1.4.0, passed, network forbidden |
 | `npm pack --dry-run` | 12 files including `src/core/commands.mjs` |
 | `bun run pack:hosts` | both tarballs include `src/core/commands.mjs`; no tests/scripts/state |
-| zsh 5.9 | real Tab, first positional, skip `--json` / repeated `--json`, no second token |
-| bash 3.2.57 | same |
-| fish 4.9.3 | same, temporary bottle extract; **verified**, not skipped |
+| zsh / bash / fish Tab | Recorded for PR #13; **withdrawn** with `--complete` and README snippets |
 | OMP 18.12.6 TUI | merge-gate rows recorded (see evidence) |
 | Pi 1.4.0 TUI | picker rows recorded (see evidence) |
 | OMP 18.12.5 TUI | not run; README does not claim 18.12.5 keys |
@@ -840,8 +666,6 @@ English (after the command block):
 > In Oh My Pi 18.12.6, type `/tibo-rush`. When the host shows slash-command argument completions, the list is `regular`, `fast`, `extreme`, `off`, and `status`. Prefix text filters it. Arrow keys move the highlight. Continuous typing through a trailing space, and Tab-accept of the command name, both open the five-row list. Enter with the list open inserts the highlight (`regular` if untouched) and does not submit. `/tibo-rush` with no argument still prints status. The standalone CLI with no arguments still prints usage and exits 1.
 >
 > Pi: the same completer is registered. On Pi 1.4.0 the argument list appears when you type through `/tibo-rush ` with the command list already open. Tab-completing the command name leaves `/tibo-rush ` without opening the argument list until you type another character. With the argument list open, Enter accepts the highlighted token; it does not submit empty args as status. Tab after the command may complete files. Paste and history restore are not claimed.
->
-> The standalone CLI (`git clone` / `bun link`) can tab-complete the first positional (`tibo-rush f` and `tibo-rush --json f`). It does not complete `--json` or a second token. Marketplace installs do not put the CLI on `PATH`. Enable completion with the snippets below. `tibo-rush --complete [prefix]` is listed under Options for those snippets; it is not a mode.
 
 Pi 1.4.0 was recorded; Using-it names Pi. If a later change skipped that checklist, drop the Pi paragraph before merge.
 
@@ -850,12 +674,8 @@ Chinese:
 > 在 Oh My Pi 18.12.6 中输入 `/tibo-rush`。当宿主显示斜杠命令参数补全时，列表为 `regular`、`fast`、`extreme`、`off`、`status`。前缀会过滤列表，方向键移动高亮。连续打出尾部空格，以及用 Tab 接受命令名，都会打开五项列表。参数列表打开时 Enter 插入高亮（未移动则为 `regular`），不会提交。真正以空参数调用命令时仍是 `status`。独立 CLI 不带参数仍打印用法并以状态码 1 退出。
 >
 > Pi 注册同一套补全。Pi 1.4.0 在连续打出 `/tibo-rush ` 且命令名列表已打开时，会更新为参数列表。用 Tab 接受命令名后，输入框虽是 `/tibo-rush `，参数列表不会打开，直到再输入字符。参数列表打开时，Enter 会接受高亮 token，不会把空参提交成 `status`。命令后的 Tab 可能补全文件。不声称粘贴或历史恢复会打开列表。
->
-> 独立 CLI（git clone / `bun link`）可补全第一个位置参数（`tibo-rush f` 与 `tibo-rush --json f`），不补全 `--json` 本身，也不补全第二个 token。市场安装不会把 CLI 放进 `PATH`。启用方式见下方片段。`tibo-rush --complete [prefix]` 写在 Options 里，不是档位。
 
-Then the three snippets from above.
-
-Do **not** add a new README GIF in the feat PR unless a throwaway recording is already in hand.
+Do **not** add a new README GIF in the feat PR unless a throwaway recording is already in hand. Do **not** document standalone CLI shell completion.
 
 ---
 
@@ -865,7 +685,7 @@ Issue [#12](https://github.com/happyfeetw/tibo-rush/issues/12) is open (`enhance
 
 Branch: `feat/command-completions` from **`main`**.
 
-Implementation PR title: `feat: add /tibo-rush argument completions on OMP, Pi, and CLI`. Body: `Closes #12`, file list, per-host checklist results (including Enter-with-open-list and Tab-accept), shell snippet results, optional throwaway picker screenshot. Gates: `bun test`; `npm pack --dry-run`; `bun run pack:hosts`; OMP 18.12.6 TUI; Pi 1.4.0 TUI if Using-it names Pi.
+Implementation PR title: `feat: add /tibo-rush argument completions on OMP, Pi, and CLI`. Body: `Closes #12`, file list, per-host checklist results (including Enter-with-open-list and Tab-accept), optional throwaway picker screenshot. Gates: `bun test`; `npm pack --dry-run`; `bun run pack:hosts`; OMP 18.12.6 TUI; Pi 1.4.0 TUI if Using-it names Pi. CLI `--complete` and shell snippets were later withdrawn.
 
 Release PR after that: `release: 0.3.0` (package.json, marketplace versions, README pins).
 
@@ -890,11 +710,10 @@ The unqualified #12 sentence (“after `/tibo-rush ` a selectable list appears�
 | Description language | Bilingual one-liners in the catalog table |
 | Include Pi hook in the same PR | Yes |
 | Version | 0.3.0 later; feat PR does not bump |
-| Shell scripts | README snippets only |
+| Shell scripts / `--complete` | **Withdrawn.** Host TUI picker only |
 | Trailing space on `value` | No |
 | Slash empty **invoke** | Still `status` |
 | CLI no-args | Still USAGE / exit 1 |
-| `--complete=fa` | Out of scope |
 
 OMP 18.12.6 Enter-with-open-list is recorded: first Enter inserts the highlight. 18.12.5 remains unverified.
 
@@ -911,9 +730,6 @@ OMP 18.12.6 Enter-with-open-list is recorded: first Enter inserts the highlight.
 | Completer throw | High | `try/catch` → `null`. |
 | Trailing space on `value` | Medium | Unit test. Checklist: inserted token has no extra space. |
 | Catalog claims `priority` while policy is `default` | Medium | Neutral `极限档 / Extreme preset`. Completer has no I/O. |
-| Shell snippet uses first **word** | Medium | Snippets skip `--json`. Feat PR runs `tibo-rush --json f<Tab>`. |
-| Claiming fish/zsh/bash from `--complete` stdout | Medium | Separate real-Tab checks. A missing fish binary is unverified; this pass ran fish 4.9.3. |
-| `--complete` parsed with `includes` | Medium | `args[0] === "--complete"` only. |
 | Docs PR #11 conflicts on Using-it | Low | Implement from `main`; rebase if needed. |
 
 ---
@@ -948,12 +764,11 @@ One implementation PR, then a release PR.
   - `src/core/commands.mjs` — catalog + `getCommandCompletions`; **no** `lib.mjs` import
   - `src/hosts/tibo-rush-omp/index.ts` — `getArgumentCompletions`
   - `src/hosts/tibo-rush-pi/index.ts` — `getArgumentCompletions`
-  - `src/cli/controller.mjs` — `--complete` after `--json` strip
-  - `tests/commands.test.mjs` — catalog / completer / dedicated `--complete` spawn
-  - `README.md`, `README.zh-CN.md` — Using-it / 使用, host limits, first-positional snippets
+  - `tests/commands.test.mjs` — catalog / completer
+  - `README.md`, `README.zh-CN.md` — Using-it / 使用, host TUI limits
   - `docs/design/evidence/command-completions/` — trimmed TUI pane dumps for the PR
-- **Not in this PR:** version bumps; custom TUI provider; reordering tokens to fake Enter-as-status.
-- **Gates:** `bun test`; `npm pack --dry-run`; `bun run pack:hosts`; OMP 18.12.6 TUI including Enter and Tab-accept; Pi 1.4.0 TUI to keep Pi in Using-it; real bash, zsh, **and fish** Tab on the README snippets. No paid model requests. No personal sessions. Key TUI pane dumps: `docs/design/evidence/command-completions/`.
+- **Not in this PR:** version bumps; custom TUI provider; reordering tokens to fake Enter-as-status; CLI `--complete`; README shell snippets.
+- **Gates:** `bun test`; `npm pack --dry-run`; `bun run pack:hosts`; OMP 18.12.6 TUI including Enter and Tab-accept; Pi 1.4.0 TUI to keep Pi in Using-it. No paid model requests. No personal sessions. Key TUI pane dumps: `docs/design/evidence/command-completions/`.
 
 ### PR 2 — `release: 0.3.0`
 

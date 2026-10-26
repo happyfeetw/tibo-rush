@@ -10,7 +10,7 @@ export const COMMAND_CATALOG = [
 ];
 
 /**
- * Synchronous argument completer for `/tibo-rush` and `tibo-rush --complete`.
+ * Synchronous argument completer for `/tibo-rush`.
  * Never throws. Returns null when the host should hide the list.
  *
  * @param {unknown} argumentPrefix

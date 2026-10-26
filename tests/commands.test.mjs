@@ -19,7 +19,7 @@ async function home() {
 }
 
 /**
- * Dedicated spawn for `--complete` and other non-JSON CLI paths.
+ * Dedicated spawn for non-JSON CLI paths.
  * Do not reuse behavior.test.mjs `cli()` (it always appends `--json` and JSON.parse's).
  */
 async function spawnCli(dir, ...args) {
@@ -105,91 +105,36 @@ describe("getCommandCompletions", () => {
   });
 });
 
-describe("CLI --complete", () => {
-  test("prints matching tokens, one per line, and creates no state files", async () => {
-    const dir = await home();
-    const all = await spawnCli(dir, "--complete");
-    expect(all.code).toBe(0);
-    expect(all.stderr).toBe("");
-    expect(all.stdout).toBe("regular\nfast\nextreme\noff\nstatus\n");
-    expect(await fs.readdir(dir)).toEqual([]);
-
-    const prefix = await spawnCli(dir, "--complete", "fa");
-    expect(prefix.code).toBe(0);
-    expect(prefix.stdout).toBe("fast\n");
-
-    const none = await spawnCli(dir, "--complete", "z");
-    expect(none.code).toBe(0);
-    expect(none.stdout).toBe("");
-    expect(none.stderr).toBe("");
-    expect(await fs.readdir(dir)).toEqual([]);
-  });
-
-  test("strips --json before dispatch and never prints JSON", async () => {
-    const dir = await home();
-    for (const args of [["--json", "--complete"], ["--complete", "--json"]]) {
-      const result = await spawnCli(dir, ...args);
-      expect(result.code).toBe(0);
-      expect(result.stdout).toBe("regular\nfast\nextreme\noff\nstatus\n");
-      expect(result.stdout.trim().startsWith("{")).toBe(false);
-    }
-  });
-
-  test("--complete --help treats --help as a prefix", async () => {
-    const dir = await home();
-    const result = await spawnCli(dir, "--complete", "--help");
-    expect(result.code).toBe(0);
-    expect(result.stdout).toBe("");
-    expect(result.stderr).toBe("");
-  });
-
-  test("extra arguments after the prefix are ignored", async () => {
-    const dir = await home();
-    const result = await spawnCli(dir, "--complete", "ex", "ignored");
-    expect(result.code).toBe(0);
-    expect(result.stdout).toBe("extreme\n");
-  });
-
-  test("--complete=fa stays an unknown command", async () => {
-    const dir = await home();
-    const result = await spawnCli(dir, "--complete=fa");
-    expect(result.code).toBe(1);
-    expect(result.stderr).toContain("Unknown command or mode");
-    expect(await fs.readdir(dir)).toEqual([]);
-  });
-
-  test("fast --complete is unexpected arguments", async () => {
-    const dir = await home();
-    const result = await spawnCli(dir, "fast", "--complete");
-    expect(result.code).toBe(1);
-    expect(result.stderr).toContain("Unexpected arguments");
-  });
-
+describe("CLI has no --complete", () => {
   test("CLI with no args still prints usage and exits 1", async () => {
     const dir = await home();
     const result = await spawnCli(dir);
     expect(result.code).toBe(1);
     expect(result.stdout).toContain("Usage");
-    expect(result.stdout).toContain("--complete");
+    expect(result.stdout).not.toContain("--complete");
     expect(await fs.readdir(dir)).toEqual([]);
   });
 
-  test("--help lists --complete under Options, not as a mode", async () => {
+  test("--help does not list --complete", async () => {
     const dir = await home();
     const result = await spawnCli(dir, "--help");
     expect(result.code).toBe(0);
-    const optionsAt = result.stdout.search(/选项|Options/);
-    expect(optionsAt).toBeGreaterThan(0);
-    expect(result.stdout.slice(optionsAt)).toContain("--complete");
-    const usageBlock = result.stdout.slice(0, optionsAt);
-    expect(usageBlock).toContain("status");
-    expect(usageBlock).not.toMatch(/tibo-rush --complete/);
+    expect(result.stdout).toContain("Usage");
+    expect(result.stdout).not.toContain("--complete");
   });
 
-  test("--help --complete keeps help behavior", async () => {
+  test("--complete is an unknown command", async () => {
     const dir = await home();
-    const result = await spawnCli(dir, "--help", "--complete");
-    expect(result.code).toBe(0);
-    expect(result.stdout).toContain("Usage");
+    const result = await spawnCli(dir, "--complete");
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain("Unknown command or mode");
+    expect(await fs.readdir(dir)).toEqual([]);
+  });
+
+  test("--json --complete is an unknown command", async () => {
+    const dir = await home();
+    const result = await spawnCli(dir, "--json", "--complete");
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain("Unknown command or mode");
   });
 });

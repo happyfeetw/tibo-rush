@@ -1,0 +1,6 @@
+Pi 1.4.0 — Tab-accept of unique command-name prefix /tibo-rus
+Buffer is /tibo-rush. Argument list is closed (unlike OMP 18.12.6).
+
+/tibo-rush
+────────────────────────────────────────────────────────────────────────────────
+(no argument rows)

@@ -1,0 +1,9 @@
+OMP 18.12.6 — Enter with prefix f and the argument list open
+Buffer becomes /tibo-rush fast. Handler has not run.
+
+Before Enter:
+╰─ /tibo-rush f
+❯ fast                            冲刺档 / Sprint preset
+
+After one Enter:
+╰─ /tibo-rush fast

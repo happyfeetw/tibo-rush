@@ -8,6 +8,7 @@ import {
   readState,
   setMode,
 } from "../core/lib.mjs";
+import { getCommandCompletions } from "../core/commands.mjs";
 
 const BOOTSTRAP_REMINDER =
   "提示：模式文件只控制已加载 tibo-rush 扩展的会话，不会把新扩展注入现有进程；" +
@@ -22,6 +23,7 @@ const USAGE = `tibo-rush — Tibo Rush shared mode CLI
 
 选项 / Options:
   --json                                  JSON 输出（便于 smoke）/ machine-readable output
+  --complete [prefix]                     打印匹配的档位 token，供 shell 补全 / print matching tokens for shell completion
 
 默认预设 / Bundled defaults (configurable):
   off       关闭（默认）/ disabled (default)
@@ -196,6 +198,13 @@ async function runSetMode(mode, jsonMode) {
 async function run(argv) {
   const jsonMode = argv.includes("--json");
   const args = argv.filter((a) => a !== "--json");
+
+  if (args[0] === "--complete") {
+    const prefix = args[1] ?? "";
+    const items = getCommandCompletions(prefix) ?? [];
+    for (const item of items) console.log(item.value);
+    return;
+  }
 
   if (args.length === 0 || args.includes("--help") || args.includes("-h")) {
     console.log(USAGE.trim());

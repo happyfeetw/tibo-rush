@@ -6,19 +6,13 @@
 
 <p align="center">English | <a href="README.zh-CN.md">中文</a></p>
 
-**One-switch subscription quota sprint modes for Oh My Pi and Pi.**
+**Pick a preset in OMP or Pi. Switch connected sessions. Restore when done.**
 
-Codex subscription quota resets on a schedule, and whatever you don't use doesn't carry over. With one command, Tibo Rush flips every connected session into a sprint mode that spends quota faster. When you're done, `off` returns each session to the setup it had before, instead of resetting everything to a single default.
+Tibo Rush adds a native `/tibo-rush` argument list to Oh My Pi and Pi. Choose `regular`, `fast`, or `extreme` for everyday or subscription-quota sprint setups; use `off` to restore each session's pre-mode settings and `status` to inspect them.
 
-Choose `regular`, `fast`, `extreme`, `off`, or `status` from the host's argument list instead of memorizing the command arguments. Tibo Rush is an OMP/Pi extension, not a standalone terminal command.
+The same request reaches connected sessions that share a state directory. Busy sessions wait until idle and failures are reported, so a request does not mean every session has applied it. Tibo Rush is a host extension, not a standalone terminal command.
 
-```text
-/tibo-rush regular
-/tibo-rush fast
-/tibo-rush extreme
-/tibo-rush off
-/tibo-rush status
-```
+> **OMP compatibility:** Tibo Rush 0.3.0 rejects OMP 18.13.1. A visible argument list does not mean that mode changes or recovery are supported. Check [host versions](#installation) before updating or restarting.
 
 **Oh My Pi**
 
@@ -51,9 +45,14 @@ Choose `regular`, `fast`, `extreme`, `off`, or `status` from the host's argument
 
 ## Installation
 
-Currently adapted to the Oh My Pi 18.12.5 / 18.12.6 and Pi 1.4.0 host APIs. Host acceptance has only been run on macOS, so Windows and Linux host behavior is not verified. Development tools need Bun 1.3 or newer. Pi 1.4.0 needs Node 22.19 or newer.
+| Host | 0.3.0 adapter target | Host acceptance |
+| --- | --- | --- |
+| Oh My Pi | Exactly 18.12.5 or 18.12.6 | Smoke and picker checks on 18.12.6 |
+| Pi | Adapted to 1.4.0; other versions unverified | Smoke and picker checks on 1.4.0 |
 
-The argument picker is included in 0.3.0. Install or update the extension before reloading the host.
+Host acceptance has only been run on macOS; Windows and Linux behavior is not verified. Development tools need Bun 1.3 or newer. Pi 1.4.0 needs Node 22.19 or newer.
+
+OMP checks its version before session SDK operations. On an unlisted version it reports `session SDK compatibility is not verified; session unchanged`; reinstalling or restarting does not bypass that guard. Do not send mode commands from an unsupported host into your real shared state directory: the shared request is published before local application.
 
 ### Oh My Pi
 
@@ -72,7 +71,14 @@ omp plugin marketplace add happyfeetw/tibo-rush
 omp plugin install tibo-rush-omp@tibo-rush
 ```
 
-Update or reinstall the extension before running `/restart` in each open OMP session to load new code. Once loaded, switching modes does not require another restart.
+For an existing user-scoped marketplace install, update the catalog and upgrade the plugin:
+
+```sh
+omp plugin marketplace update tibo-rush
+omp plugin upgrade --scope user tibo-rush-omp@tibo-rush
+```
+
+Use `--scope project` instead if that is where you installed it; do not add a second copy. On a supported OMP version, run `/restart` in each open session after upgrading. Restart loads the installed files; it neither upgrades them nor makes an unsupported OMP version compatible. Once loaded, switching modes does not require another restart.
 
 ### Pi
 
@@ -82,7 +88,7 @@ Install from git. This uses the main repository's Pi manifest and loads only the
 pi install git:github.com/happyfeetw/tibo-rush@v0.3.0
 ```
 
-After updating the installed source, run `/reload` in each open Pi session, or quit and resume it. The commands are the same as in OMP.
+Then run `/reload` in each open Pi session, or start a new one. Reload only loads the installed files; it does not advance a pinned Git tag. If you previously installed another tag, remove its old source entry before installing `v0.3.0`. Keep the shared state directory when updating, and do not load two copies of the adapter.
 
 If you prefer a host-specific package, download `tibo-rush-pi-0.3.0.tgz` or `tibo-rush-omp-0.3.0.tgz` from the [Releases page](https://github.com/happyfeetw/tibo-rush/releases), unpack it into a fixed directory, and install from there:
 
@@ -97,17 +103,17 @@ The Pi gallery finds packages through npm, so a git install or a GitHub release 
 
 ## Using it
 
-The same commands work in both hosts:
+The same five arguments work in both hosts:
 
-```text
-/tibo-rush regular
-/tibo-rush fast
-/tibo-rush extreme
-/tibo-rush off
-/tibo-rush status
-```
+| Argument | Requested action |
+| --- | --- |
+| `regular` | Everyday preset |
+| `fast` | Sprint preset |
+| `extreme` | Extreme preset |
+| `off` | Restore each session's pre-mode settings |
+| `status` | Read the shared request and the current session's status |
 
-Use `/tibo-rush` inside OMP or Pi:
+You can type a full slash command, such as `/tibo-rush fast` or `/tibo-rush off`, or use the argument list:
 
 1. Type `/tibo-rush ` to request argument suggestions. If the list stays closed, start typing a prefix such as `f`.
 2. Use the arrow keys to choose an item. With the argument list open, Enter inserts it; press Enter again to run it.
@@ -124,7 +130,7 @@ Submitting `/tibo-rush` with genuinely empty handler arguments still reports sta
 
 </details>
 
-`regular` is an everyday setup. `fast` and `extreme` are the sprint modes: `fast` moves the main model to the preset's sprint setup, and `extreme` adds the priority (Fast) service tier on top. How priority requests count against your quota is up to the provider.
+`regular`, `fast`, and `extreme` are configurable preset names, not fixed performance levels. The bundled `fast` uses the Standard service tier; the bundled `extreme` requests priority (Fast). Your policy can change either setup, and the provider decides availability, speed, and quota accounting.
 
 The example preset (`presets/tibo-rush.json`) defines these modes:
 
@@ -150,7 +156,7 @@ The commands are the same, but the hosts expose different controls, and Tibo Rus
 
 The default shared state directory is **`~/.tibo-rush`**. Override it with `TIBO_RUSH_HOME`. OMP and Pi sessions that share a directory receive the same requests. Use a separate directory for each group that should be isolated. This does not sync across machines.
 
-To customize the policy:
+To customize the policy, copy the example from a Git checkout or an unpacked release package. Run the commands below from that directory; a marketplace install does not create `presets/` in your current project.
 
 ```sh
 mkdir -p ~/.tibo-rush

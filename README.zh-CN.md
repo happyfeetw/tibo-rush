@@ -14,7 +14,7 @@ Tibo Rush 为两个宿主提供原生 `/tibo-rush` 参数列表：`regular` 用�
 
 产品是 OMP/Pi 扩展，不提供独立终端命令。它不读取订阅额度或预测重置时间，何时冲刺由你决定。
 
-> **OMP 兼容性：** 0.3.0 会拒绝 OMP 18.13.1。参数列表能显示，不代表档位应用或恢复可用；更新或重启前请先核对[宿主版本](#安装)。
+> **OMP 升级提示：** 0.3.1 新增 OMP 18.13.1 适配，0.3.0 在该宿主上会触发版本保护。请先升级扩展，再重新加载会话；支持范围见[宿主版本](#安装)。
 
 **Oh My Pi**
 
@@ -47,9 +47,9 @@ Tibo Rush 为两个宿主提供原生 `/tibo-rush` 参数列表：`regular` 用�
 
 按你使用的宿主安装对应适配器：Oh My Pi 对应 `tibo-rush-omp`，Pi 对应 `tibo-rush-pi`。两边使用相同的会话内命令。
 
-| 宿主 | 0.3.0 适配范围 | 实际宿主验收 |
+| 宿主 | 0.3.1 适配范围 | 实际宿主验收 |
 | --- | --- | --- |
-| Oh My Pi | 版本保护只接受 18.12.5 或 18.12.6 | 18.12.6 的 smoke 和参数列表 |
+| Oh My Pi | 版本保护只接受 18.12.5、18.12.6 或 18.13.1 | 本次验证 18.13.1 的 smoke 和参数列表；保留 18.12.6 的历史验收 |
 | Pi | 已适配 1.4.0，其他版本未验证 | 1.4.0 的 smoke 和参数列表 |
 
 实际宿主验证仅在 macOS 上完成，Windows 和 Linux 尚未经过同等验证。开发工具需要 Bun >= 1.3；Pi 1.4.0 需要 Node >= 22.19。
@@ -87,15 +87,15 @@ omp plugin upgrade --scope user tibo-rush-omp@tibo-rush
 通过 Git 安装时，使用的是主仓库中的 Pi 包清单，只会加载 Pi 适配器：
 
 ```sh
-pi install git:github.com/happyfeetw/tibo-rush@v0.3.0
+pi install git:github.com/happyfeetw/tibo-rush@v0.3.1
 ```
 
-安装后，在每个已有 Pi 会话中执行 `/reload`，或新开会话。重新加载只读取已安装的文件，不会把固定的 Git tag 升到新版本。如果之前安装了其他 tag，先移除旧来源条目，再安装 `v0.3.0`。更新时保留共享状态目录，不要同时加载两份适配器。
+安装后，在每个已有 Pi 会话中执行 `/reload`，或新开会话。重新加载只读取已安装的文件，不会把固定的 Git tag 升到新版本。如果之前安装了其他 tag，先移除旧来源条目，再安装 `v0.3.1`。更新时保留共享状态目录，不要同时加载两份适配器。
 
 <details>
 <summary>宿主分发包安装</summary>
 
-如果需要单独安装宿主分发包，可以从 [Releases](https://github.com/happyfeetw/tibo-rush/releases) 下载 `tibo-rush-pi-0.3.0.tgz` 或 `tibo-rush-omp-0.3.0.tgz`，解压到固定目录，再按宿主选择下面的命令：
+如果需要单独安装宿主分发包，可以从 [Releases](https://github.com/happyfeetw/tibo-rush/releases) 下载 `tibo-rush-pi-0.3.1.tgz` 或 `tibo-rush-omp-0.3.1.tgz`，解压到固定目录，再按宿主选择下面的命令：
 
 ```sh
 pi install /absolute/path/to/package
@@ -131,7 +131,7 @@ Pi gallery 依赖 npm 上发布的 `pi-package` 包来发现项目。提供 GitH
 <details>
 <summary>两个宿主的按键差异</summary>
 
-- **Oh My Pi 18.12.6：** 连续打出 `/tibo-rush ` 且命令名列表已打开时，会更新为五项参数，顺序与 catalog 一致。用 Tab 接受命令名的唯一前缀（`/tibo-rus` 再 Tab）也会立刻打开参数列表。参数列表打开时，Enter 插入高亮 token（未移动高亮则为 `regular`），不会提交；第二次 Enter 才执行该 token。token 已经完整输入时，一次 Enter 就会提交。不带空格的 `/tibo-rush`，或 Esc 取消列表后再 Enter，仍以空参提交 `status`。`f` / `ex` 等前缀会过滤列表。不声称粘贴或历史恢复会打开列表。
+- **Oh My Pi 18.12.6 / 18.13.1：** 连续打出 `/tibo-rush ` 且命令名列表已打开时，会更新为五项参数，顺序与 catalog 一致。用 Tab 接受命令名的唯一前缀（`/tibo-rus` 再 Tab）也会立刻打开参数列表。参数列表打开时，Enter 插入高亮 token（未移动高亮则为 `regular`），不会提交；第二次 Enter 才执行该 token。token 已经完整输入时，一次 Enter 就会提交。不带空格的 `/tibo-rush`，或 Esc 取消列表后再 Enter，仍以空参提交 `status`。`f` / `ex` 等前缀会过滤列表。不声称粘贴或历史恢复会打开列表。
 - **Pi 1.4.0：** 连续打出 `/tibo-rush ` 且命令名列表已打开时，会更新为参数列表。用 Tab 接受命令名后，输入框虽是 `/tibo-rush `，参数列表不会打开，直到再输入字符。参数列表打开时，第一次 Enter 插入高亮 token（未移动高亮则为 `regular`），不会提交；第二次 Enter 才执行该 token。不带空格的 `/tibo-rush`，或 Esc 取消列表后再 Enter，仍以空参提交 `status`。命令后的 Tab 可能补全文件。不声称粘贴或历史恢复会打开列表。
 - 已加载的扩展仍是旧代码，需要宿主重新加载：Oh My Pi 用 `/restart`，Pi 用 `/reload` 或新开会话。
 

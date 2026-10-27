@@ -6,26 +6,15 @@
 
 <p align="center"><a href="README.md">English</a> | 中文</p>
 
-**一条命令，让共享状态目录下所有已接入的 Oh My Pi 和 Pi 会话一起切换到冲刺模式。结束后执行 `off`，各自恢复原来的设置。**
+**在 OMP 或 Pi 中选档位，统一请求切换，结束后恢复各会话原设置。**
 
-Codex 订阅额度按周期重置，没用完的部分不会留到下个周期。如果你想在重置前集中使用剩余额度，Tibo Rush 可以帮你统一切换会话配置。它不会读取额度，也不预测重置时间，何时开启、何时结束，都由你决定。
+Tibo Rush 为两个宿主提供原生 `/tibo-rush` 参数列表：`regular` 用于日常，`fast` / `extreme` 用于额度冲刺，`off` 恢复，`status` 查看状态。可以从列表中选择，也可以直接输入完整斜杠命令。
 
-- `fast` / `extreme` 用于冲刺，`regular` 用于日常；`off` 恢复每个会话启用模式前的设置。
-- OMP 支持切换主模型、思考强度、服务档位，以及角色和子代理路由；Pi 支持切换主模型和思考强度，并为原生 Codex 请求设置 `service_tier`。
-- 在宿主的参数列表中选择档位，不必记住或手打完整名字。Tibo Rush 作为 OMP/Pi 扩展使用，不提供独立终端命令。
+共享同一状态目录且已接入的会话会收到同一请求。忙碌会话要等空闲，切换失败会明确报错，不能把“已请求”当作“全部已生效”。
 
-| 适配项目 / 分发包 | 宿主 | 会话内命令 |
-| --- | --- | --- |
-| `tibo-rush-omp` | Oh My Pi（OMP） | `/tibo-rush fast` |
-| `tibo-rush-pi` | 原版 Pi | `/tibo-rush fast` |
+产品是 OMP/Pi 扩展，不提供独立终端命令。它不读取订阅额度或预测重置时间，何时冲刺由你决定。
 
-```text
-/tibo-rush regular
-/tibo-rush fast
-/tibo-rush extreme
-/tibo-rush off
-/tibo-rush status
-```
+> **OMP 兼容性：** 0.3.0 会拒绝 OMP 18.13.1。参数列表能显示，不代表档位应用或恢复可用；更新或重启前请先核对[宿主版本](#安装)。
 
 **Oh My Pi**
 
@@ -58,9 +47,14 @@ Codex 订阅额度按周期重置，没用完的部分不会留到下个周期�
 
 按你使用的宿主安装对应适配器：Oh My Pi 对应 `tibo-rush-omp`，Pi 对应 `tibo-rush-pi`。两边使用相同的会话内命令。
 
-目前已适配的宿主 API 版本为 OMP 18.12.5 / 18.12.6、Pi 1.4.0。实际宿主验证在 macOS 上完成，Windows 和 Linux 尚未经过同等验证。开发工具需要 Bun >= 1.3；Pi 1.4.0 需要 Node >= 22.19。
+| 宿主 | 0.3.0 适配范围 | 实际宿主验收 |
+| --- | --- | --- |
+| Oh My Pi | 版本保护只接受 18.12.5 或 18.12.6 | 18.12.6 的 smoke 和参数列表 |
+| Pi | 已适配 1.4.0，其他版本未验证 | 1.4.0 的 smoke 和参数列表 |
 
-档位列表从 0.3.0 开始提供。请先安装或更新扩展，再重新加载宿主。
+实际宿主验证仅在 macOS 上完成，Windows 和 Linux 尚未经过同等验证。开发工具需要 Bun >= 1.3；Pi 1.4.0 需要 Node >= 22.19。
+
+OMP 在执行会话 SDK 操作前检查版本。不在范围内时，会报 `session SDK compatibility is not verified; session unchanged`；重新安装或重启不会绕过保护。不要从不支持的宿主向真实共享目录发送档位命令：共享请求会先写入，再尝试在当前会话应用。
 
 ### Oh My Pi
 
@@ -79,7 +73,14 @@ omp plugin marketplace add happyfeetw/tibo-rush
 omp plugin install tibo-rush-omp@tibo-rush
 ```
 
-更新或重新安装扩展后，每个已有 OMP 会话都需要执行 `/restart`，才能加载新代码。加载后切换模式无需再次重启。
+已有用户级市场安装时，先刷新目录，再升级插件：
+
+```sh
+omp plugin marketplace update tibo-rush
+omp plugin upgrade --scope user tibo-rush-omp@tibo-rush
+```
+
+如果原来装在项目级，改用 `--scope project`，不要再装一份。在受支持的 OMP 版本上，升级后为每个已有会话执行 `/restart`。重启只加载已安装的文件，不会更新插件，也不会让不支持的 OMP 版本自动兼容。加载后切换模式无需再次重启。
 
 ### Pi
 
@@ -89,7 +90,7 @@ omp plugin install tibo-rush-omp@tibo-rush
 pi install git:github.com/happyfeetw/tibo-rush@v0.3.0
 ```
 
-更新安装来源后，在每个已有的 Pi 会话中执行 `/reload`，或退出后续接原会话，以加载新代码。两边的模式命令相同。
+安装后，在每个已有 Pi 会话中执行 `/reload`，或新开会话。重新加载只读取已安装的文件，不会把固定的 Git tag 升到新版本。如果之前安装了其他 tag，先移除旧来源条目，再安装 `v0.3.0`。更新时保留共享状态目录，不要同时加载两份适配器。
 
 <details>
 <summary>宿主分发包安装</summary>
@@ -109,7 +110,17 @@ Pi gallery 依赖 npm 上发布的 `pi-package` 包来发现项目。提供 GitH
 
 ## 使用
 
-在 OMP 或 Pi 会话中使用 `/tibo-rush`：
+两个宿主使用相同的五个参数：
+
+| 参数 | 请求的操作 |
+| --- | --- |
+| `regular` | 日常预设 |
+| `fast` | 冲刺预设 |
+| `extreme` | 极限预设 |
+| `off` | 恢复各会话入档前的设置 |
+| `status` | 只读查看共享请求与当前会话状态 |
+
+可以直接输入 `/tibo-rush fast`、`/tibo-rush off` 等完整斜杠命令，也可以从参数列表操作：
 
 1. 输入 `/tibo-rush ` 请求参数候选。如果列表没有打开，继续输入 `f` 等前缀。
 2. 用方向键移动高亮。参数列表打开时，Enter 先接受候选，再按一次 Enter 才执行。
@@ -126,7 +137,7 @@ Pi gallery 依赖 npm 上发布的 `pi-package` 包来发现项目。提供 GitH
 
 </details>
 
-`regular` 使用日常配置，`fast` 和 `extreme` 用于冲刺。`fast` 将主模型切到预设的冲刺配置。产品的 `fast` 模式不等于 priority/Fast 档：示例里的 `fast` 仍是 Standard，`extreme` 才启用 priority。Standard 对应配置里的 `default`，priority 对应供应商的 Fast 服务档位。priority 如何计入额度，由供应商决定。
+`regular`、`fast`、`extreme` 都是可配置的预设名，不能仅凭名字推断模型、速度或服务档位。仓库示例中的 `fast` 使用 Standard，`extreme` 请求 priority/Fast；自定义策略可以更改这些配置。Standard 对应配置中的 `default`，priority 的可用性、速度和额度计费由供应商决定。
 
 仓库自带的示例预设（[`presets/tibo-rush.json`](presets/tibo-rush.json)）如下：
 
@@ -162,7 +173,7 @@ Pi gallery 依赖 npm 上发布的 `pi-package` 包来发现项目。提供 GitH
 
 要把会话分成互不影响的几组，就给各组进程设置不同的目录。Tibo Rush 本身不提供跨机器同步。
 
-默认策略位于 [`presets/tibo-rush.json`](presets/tibo-rush.json)。需要自定义时，先复制一份：
+默认策略位于 [`presets/tibo-rush.json`](presets/tibo-rush.json)。自定义时，请在源码目录或已解压的分发包目录中执行下面的复制命令；市场安装不会在当前项目中生成 `presets/`。
 
 ```sh
 mkdir -p ~/.tibo-rush

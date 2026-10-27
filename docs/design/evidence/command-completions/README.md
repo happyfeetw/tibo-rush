@@ -23,3 +23,7 @@ OMP 18.12.5, paste, and history restore were not recorded. Pi isolated `fast` fa
 ## Updated picker demonstrations (2026-10-27)
 
 The README GIFs now show both hosts applying `fast` and restoring with `off`. Pi uses an offline test provider, so this does not validate real provider authentication or server-side priority. See [recording provenance and results](picker-demo-2026-10-27.md). The 2026-10-26 notes above describe the original acceptance captures, not these newer demonstrations.
+
+## OMP 18.13.1 compatibility (0.3.1)
+
+See [the SDK comparison, real-host lifecycle checks, and installed-archive picker acceptance](omp-18.13.1-0.3.1.md). This extends the exact OMP allowlist without changing mode or recovery semantics; the 0.3.0 videos above remain historical recordings on OMP 18.12.6 and Pi 1.4.0.

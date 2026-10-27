@@ -1,13 +1,13 @@
 {
   "name": "tibo-rush",
   "owner": { "name": "happyfeetw" },
-  "metadata": { "description": "One-switch subscription quota sprint modes for Oh My Pi and Pi", "version": "0.3.0" },
+  "metadata": { "description": "One-switch subscription quota sprint modes for Oh My Pi and Pi", "version": "0.3.1" },
   "plugins": [
     {
       "name": "tibo-rush-omp",
       "description": "One-switch subscription quota sprint modes for Oh My Pi and Pi",
       "source": "./",
-      "version": "0.3.0",
+      "version": "0.3.1",
       "license": "MIT",
       "homepage": "https://github.com/happyfeetw/tibo-rush"
     }

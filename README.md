@@ -12,7 +12,7 @@ Tibo Rush adds a native `/tibo-rush` argument list to Oh My Pi and Pi. Choose `r
 
 The same request reaches connected sessions that share a state directory. Busy sessions wait until idle and failures are reported, so a request does not mean every session has applied it. Tibo Rush is a host extension, not a standalone terminal command.
 
-> **OMP compatibility:** Tibo Rush 0.3.0 rejects OMP 18.13.1. A visible argument list does not mean that mode changes or recovery are supported. Check [host versions](#installation) before updating or restarting.
+> **OMP upgrade note:** 0.3.1 adds support for OMP 18.13.1. Update the extension before loading it in that host version; 0.3.0's version guard rejects it. See [host versions](#installation).
 
 **Oh My Pi**
 
@@ -45,9 +45,9 @@ The same request reaches connected sessions that share a state directory. Busy s
 
 ## Installation
 
-| Host | 0.3.0 adapter target | Host acceptance |
+| Host | 0.3.1 adapter target | Host acceptance |
 | --- | --- | --- |
-| Oh My Pi | Exactly 18.12.5 or 18.12.6 | Smoke and picker checks on 18.12.6 |
+| Oh My Pi | Exactly 18.12.5, 18.12.6, or 18.13.1 | Smoke and picker checks on 18.13.1; historical acceptance on 18.12.6 |
 | Pi | Adapted to 1.4.0; other versions unverified | Smoke and picker checks on 1.4.0 |
 
 Host acceptance has only been run on macOS; Windows and Linux behavior is not verified. Development tools need Bun 1.3 or newer. Pi 1.4.0 needs Node 22.19 or newer.
@@ -85,12 +85,12 @@ Use `--scope project` instead if that is where you installed it; do not add a se
 Install from git. This uses the main repository's Pi manifest and loads only the Pi adapter, not OMP:
 
 ```sh
-pi install git:github.com/happyfeetw/tibo-rush@v0.3.0
+pi install git:github.com/happyfeetw/tibo-rush@v0.3.1
 ```
 
-Then run `/reload` in each open Pi session, or start a new one. Reload only loads the installed files; it does not advance a pinned Git tag. If you previously installed another tag, remove its old source entry before installing `v0.3.0`. Keep the shared state directory when updating, and do not load two copies of the adapter.
+Then run `/reload` in each open Pi session, or start a new one. Reload only loads the installed files; it does not advance a pinned Git tag. If you previously installed another tag, remove its old source entry before installing `v0.3.1`. Keep the shared state directory when updating, and do not load two copies of the adapter.
 
-If you prefer a host-specific package, download `tibo-rush-pi-0.3.0.tgz` or `tibo-rush-omp-0.3.0.tgz` from the [Releases page](https://github.com/happyfeetw/tibo-rush/releases), unpack it into a fixed directory, and install from there:
+If you prefer a host-specific package, download `tibo-rush-pi-0.3.1.tgz` or `tibo-rush-omp-0.3.1.tgz` from the [Releases page](https://github.com/happyfeetw/tibo-rush/releases), unpack it into a fixed directory, and install from there:
 
 ```sh
 pi install /absolute/path/to/package
@@ -124,7 +124,7 @@ Submitting `/tibo-rush` with genuinely empty handler arguments still reports sta
 <details>
 <summary>Keyboard behavior by host</summary>
 
-- **Oh My Pi 18.12.6:** typing through `/tibo-rush ` while the command-name list is already open updates it to the five tokens, in catalog order. Tab-accepting a unique command-name prefix (`/tibo-rus` then Tab) also opens that argument list immediately. With the argument list open, Enter inserts the highlighted token (`regular` if you have not moved the highlight) and does not submit; a second Enter runs that token. If the token is already fully typed, one Enter submits. `/tibo-rush` with no trailing space, or Esc then Enter after dismissing the list, still submits empty args as status. Prefix text such as `f` or `ex` filters the list. Paste and history restore are not claimed.
+- **Oh My Pi 18.12.6 / 18.13.1:** typing through `/tibo-rush ` while the command-name list is already open updates it to the five tokens, in catalog order. Tab-accepting a unique command-name prefix (`/tibo-rus` then Tab) also opens that argument list immediately. With the argument list open, Enter inserts the highlighted token (`regular` if you have not moved the highlight) and does not submit; a second Enter runs that token. If the token is already fully typed, one Enter submits. `/tibo-rush` with no trailing space, or Esc then Enter after dismissing the list, still submits empty args as status. Prefix text such as `f` or `ex` filters the list. Paste and history restore are not claimed.
 - **Pi 1.4.0:** typing through `/tibo-rush ` while the command-name list is already open updates it to the argument list. Tab-accepting the command name leaves `/tibo-rush ` without opening the argument list until you type another character. With the argument list open, the first Enter inserts the highlighted token (`regular` if you have not moved the highlight) and does not submit; a second Enter runs that token. `/tibo-rush` with no trailing space, or Esc then Enter after dismissing the list, still submits empty args as status. Tab after the command may complete files. Paste and history restore are not claimed.
 - Loaded extensions keep the previous code until the host reloads: `/restart` on Oh My Pi, `/reload` or a new session on Pi.
 

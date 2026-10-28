@@ -14,7 +14,7 @@ Tibo Rush 为两个宿主提供原生 `/tibo-rush` 参数列表：`regular` 用�
 
 产品是 OMP/Pi 扩展，不提供独立终端命令。它不读取订阅额度或预测重置时间，何时冲刺由你决定。
 
-> **OMP 升级提示：** 0.3.1 新增 OMP 18.13.1 适配，0.3.0 在该宿主上会触发版本保护。请先升级扩展，再重新加载会话；支持范围见[宿主版本](#安装)。
+> **0.3.2 变更：** 不再按 OMP 版本号拦截运行，详见[社区兼容策略](#安装)。
 
 **Oh My Pi**
 
@@ -47,14 +47,16 @@ Tibo Rush 为两个宿主提供原生 `/tibo-rush` 参数列表：`regular` 用�
 
 按你使用的宿主安装对应适配器：Oh My Pi 对应 `tibo-rush-omp`，Pi 对应 `tibo-rush-pi`。两边使用相同的会话内命令。
 
-| 宿主 | 0.3.1 适配范围 | 实际宿主验收 |
-| --- | --- | --- |
-| Oh My Pi | 版本保护只接受 18.12.5、18.12.6 或 18.13.1 | 本次验证 18.13.1 的 smoke 和参数列表；保留 18.12.6 的历史验收 |
-| Pi | 已适配 1.4.0，其他版本未验证 | 1.4.0 的 smoke 和参数列表 |
+| 宿主 | 做过检查的版本 |
+| --- | --- |
+| Oh My Pi | 本次回归运行于 18.13.2；18.13.1 和 18.12.6 为此前的检查记录 |
+| Pi | 1.4.0 |
 
-实际宿主验证仅在 macOS 上完成，Windows 和 Linux 尚未经过同等验证。开发工具需要 Bun >= 1.3；Pi 1.4.0 需要 Node >= 22.19。
+这些只是测试记录，不是版本准入条件，也不是兼容承诺。这是社区项目，不主动追踪或适配每次宿主发布。遇到可复现的问题可以[提 issue](https://github.com/happyfeetw/tibo-rush/issues)，是否跟进由维护者按需决定，不承诺逐版修复。
 
-OMP 在执行会话 SDK 操作前检查版本。不在范围内时，会报 `session SDK compatibility is not verified; session unchanged`；重新安装或重启不会绕过保护。不要从不支持的宿主向真实共享目录发送档位命令：共享请求会先写入，再尝试在当前会话应用。
+目前的检查在 macOS 上完成，Windows 和 Linux 尚未经过同等验证。开发工具需要 Bun >= 1.3；Pi 1.4.0 需要 Node >= 22.19。
+
+源码不因 OMP 版本未列在表内而拒绝运行，也不增加自动兼容探测、备用适配层或按版本兜底。档位命令先写入共享请求，再由各会话尝试应用；遇到报错需逐会话查看状态，不能假定其他会话都未变化。
 
 ### Oh My Pi
 
@@ -80,22 +82,22 @@ omp plugin marketplace update tibo-rush
 omp plugin upgrade --scope user tibo-rush-omp@tibo-rush
 ```
 
-如果原来装在项目级，改用 `--scope project`，不要再装一份。在受支持的 OMP 版本上，升级后为每个已有会话执行 `/restart`。重启只加载已安装的文件，不会更新插件，也不会让不支持的 OMP 版本自动兼容。加载后切换模式无需再次重启。
+如果原来装在项目级，改用 `--scope project`，不要再装一份。升级后为每个已有 OMP 会话执行 `/restart`。重启只加载已安装的文件，不会更新插件，也不能修复 SDK 的破坏性变更。加载后切换模式无需再次重启。
 
 ### Pi
 
 通过 Git 安装时，使用的是主仓库中的 Pi 包清单，只会加载 Pi 适配器：
 
 ```sh
-pi install git:github.com/happyfeetw/tibo-rush@v0.3.1
+pi install git:github.com/happyfeetw/tibo-rush@v0.3.2
 ```
 
-安装后，在每个已有 Pi 会话中执行 `/reload`，或新开会话。重新加载只读取已安装的文件，不会把固定的 Git tag 升到新版本。如果之前安装了其他 tag，先移除旧来源条目，再安装 `v0.3.1`。更新时保留共享状态目录，不要同时加载两份适配器。
+安装后，在每个已有 Pi 会话中执行 `/reload`，或新开会话。重新加载只读取已安装的文件，不会把固定的 Git tag 升到新版本。如果之前安装了其他 tag，先移除旧来源条目，再安装 `v0.3.2`。更新时保留共享状态目录，不要同时加载两份适配器。
 
 <details>
 <summary>宿主分发包安装</summary>
 
-如果需要单独安装宿主分发包，可以从 [Releases](https://github.com/happyfeetw/tibo-rush/releases) 下载 `tibo-rush-pi-0.3.1.tgz` 或 `tibo-rush-omp-0.3.1.tgz`，解压到固定目录，再按宿主选择下面的命令：
+如果需要单独安装宿主分发包，可以从 [Releases](https://github.com/happyfeetw/tibo-rush/releases) 下载 `tibo-rush-pi-0.3.2.tgz` 或 `tibo-rush-omp-0.3.2.tgz`，解压到固定目录，再按宿主选择下面的命令：
 
 ```sh
 pi install /absolute/path/to/package

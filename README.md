@@ -12,7 +12,7 @@ Tibo Rush adds a native `/tibo-rush` argument list to Oh My Pi and Pi. Choose `r
 
 The same request reaches connected sessions that share a state directory. Busy sessions wait until idle and failures are reported, so a request does not mean every session has applied it. Tibo Rush is a host extension, not a standalone terminal command.
 
-> **OMP upgrade note:** 0.3.1 adds support for OMP 18.13.1. Update the extension before loading it in that host version; 0.3.0's version guard rejects it. See [host versions](#installation).
+> **0.3.2:** The OMP version-only block has been removed. See the [community compatibility policy](#installation).
 
 **Oh My Pi**
 
@@ -45,14 +45,16 @@ The same request reaches connected sessions that share a state directory. Busy s
 
 ## Installation
 
-| Host | 0.3.1 adapter target | Host acceptance |
-| --- | --- | --- |
-| Oh My Pi | Exactly 18.12.5, 18.12.6, or 18.13.1 | Smoke and picker checks on 18.13.1; historical acceptance on 18.12.6 |
-| Pi | Adapted to 1.4.0; other versions unverified | Smoke and picker checks on 1.4.0 |
+| Host | Versions exercised |
+| --- | --- |
+| Oh My Pi | 18.13.2 in the current regression run; earlier checks on 18.13.1 and 18.12.6 |
+| Pi | 1.4.0 |
 
-Host acceptance has only been run on macOS; Windows and Linux behavior is not verified. Development tools need Bun 1.3 or newer. Pi 1.4.0 needs Node 22.19 or newer.
+These are test records, not version requirements or compatibility guarantees. This is a community project: new host releases are not automatically assessed or adapted for. Report reproducible breakage in an [issue](https://github.com/happyfeetw/tibo-rush/issues); compatibility work is taken on when the maintainer chooses to follow up.
 
-OMP checks its version before session SDK operations. On an unlisted version it reports `session SDK compatibility is not verified; session unchanged`; reinstalling or restarting does not bypass that guard. Do not send mode commands from an unsupported host into your real shared state directory: the shared request is published before local application.
+Checks to date were run on macOS; Windows and Linux behavior is not verified. Development tools need Bun 1.3 or newer. Pi 1.4.0 needs Node 22.19 or newer.
+
+The source does not reject OMP solely because its version is absent from this table, and adds no automatic compatibility probe, fallback adapter, or version-specific workaround. A shared mode request is published before each session attempts to apply it, so inspect each session's status after an error rather than assuming no other session changed.
 
 ### Oh My Pi
 
@@ -78,19 +80,19 @@ omp plugin marketplace update tibo-rush
 omp plugin upgrade --scope user tibo-rush-omp@tibo-rush
 ```
 
-Use `--scope project` instead if that is where you installed it; do not add a second copy. On a supported OMP version, run `/restart` in each open session after upgrading. Restart loads the installed files; it neither upgrades them nor makes an unsupported OMP version compatible. Once loaded, switching modes does not require another restart.
+Use `--scope project` instead if that is where you installed it; do not add a second copy. Run `/restart` in each open OMP session after upgrading. Restart loads installed files; it does not upgrade them or fix an SDK breaking change. Once loaded, switching modes does not require another restart.
 
 ### Pi
 
 Install from git. This uses the main repository's Pi manifest and loads only the Pi adapter, not OMP:
 
 ```sh
-pi install git:github.com/happyfeetw/tibo-rush@v0.3.1
+pi install git:github.com/happyfeetw/tibo-rush@v0.3.2
 ```
 
-Then run `/reload` in each open Pi session, or start a new one. Reload only loads the installed files; it does not advance a pinned Git tag. If you previously installed another tag, remove its old source entry before installing `v0.3.1`. Keep the shared state directory when updating, and do not load two copies of the adapter.
+Then run `/reload` in each open Pi session, or start a new one. Reload only loads the installed files; it does not advance a pinned Git tag. If you previously installed another tag, remove its old source entry before installing `v0.3.2`. Keep the shared state directory when updating, and do not load two copies of the adapter.
 
-If you prefer a host-specific package, download `tibo-rush-pi-0.3.1.tgz` or `tibo-rush-omp-0.3.1.tgz` from the [Releases page](https://github.com/happyfeetw/tibo-rush/releases), unpack it into a fixed directory, and install from there:
+If you prefer a host-specific package, download `tibo-rush-pi-0.3.2.tgz` or `tibo-rush-omp-0.3.2.tgz` from the [Releases page](https://github.com/happyfeetw/tibo-rush/releases), unpack it into a fixed directory, and install from there:
 
 ```sh
 pi install /absolute/path/to/package

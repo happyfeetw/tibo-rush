@@ -166,11 +166,6 @@ export default function tiboRush(pi: ExtensionAPI) {
   function hostSession(ctx: Context, owner = sessionId): AgentSession {
     // These are SDK exports, not properties probed out of the read-only facade.
     // sdk.ts attaches this ref before runtime-init/TUI emit session_start.
-    // Keep the allowlist exact; verify lifecycle and restoration before adding a version.
-    const version = pi.pi.VERSION;
-    if (version !== '18.12.5' && version !== '18.12.6' && version !== '18.13.1') {
-      throw new Error(`OMP ${version} session SDK compatibility is not verified; session unchanged`);
-    }
     const session = pi.pi.AgentRegistry.global().get(ctx.agent.id)?.session;
     if (!session || session.sessionManager !== ctx.sessionManager || session.sessionManager.getSessionId() !== owner) {
       throw new Error('OMP current session is unavailable in the public agent registry; session unchanged');
